@@ -15,8 +15,16 @@ def main() -> None:
 
 def process_row(row: dict[str, Any]) -> dict[str, Any]:
     result = {**row}
+
+    # Normalize country code.
     if result["MailingCountry"] == "US":
         result["MailingCountry"] = "USA"
+
+    # Normalize US zip codes to be 5 digits.
+    if result["MailingCountry"] == "USA" and len(result["MailingPostalCode"]) > 5:
+        assert result["MailingPostalCode"][5] == "-"
+        result["MailingPostalCode"] = result["MailingPostalCode"][:5]
+
     return result
 
 
