@@ -1,0 +1,14 @@
+[GLOBAL]
+pants_version = "2.15.1"
+backend_packages = [
+    "pants.backend.python",
+    "pants.backend.python.lint.black",
+]
+
+[anonymous-telemetry]
+enabled = false
+
+[python]
+interpreter_constraints = [">=3.9"]
+enable_resolves = true
+resolves = { python-default = "default.lock" }
