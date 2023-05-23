@@ -9,6 +9,7 @@
 //     "CPython>=3.9"
 //   ],
 //   "generated_with_requirements": [
+//     "geopy",
 //     "uszipcode"
 //   ],
 //   "manylinux": "manylinux2014",
@@ -330,6 +331,67 @@
           ],
           "requires_python": null,
           "version": "0.18.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "6b7225248e45ff7edcee32becc4e0a1504c606ac5ee163a5656d482e0cd38734",
+              "url": "https://files.pythonhosted.org/packages/9f/5a/a26132406f1f40cf51ea349a5f11b0a46cec02a2031ff82e391c2537247a/geographiclib-2.0-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "f7f41c85dc3e1c2d3d935ec86660dc3b2c848c83e17f9a9e51ba9d5146a15859",
+              "url": "https://files.pythonhosted.org/packages/96/cd/90271fd195d79a9c2af0ca21632b297a6cc3e852e0413a2e4519e67be213/geographiclib-2.0.tar.gz"
+            }
+          ],
+          "project_name": "geographiclib",
+          "requires_dists": [],
+          "requires_python": ">=3.7",
+          "version": "2.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
+              "hash": "4a29a16d41d8e56ba8e07310802a1cbdf098eeb6069cc3d6d3068fc770629ffc",
+              "url": "https://files.pythonhosted.org/packages/e4/00/6313c0ffdd230164890f433019749189e0b884562bdc170e9c3a3454b3a6/geopy-2.3.0-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "228cd53b6eef699b2289d1172e462a90d5057779a10388a7366291812601187f",
+              "url": "https://files.pythonhosted.org/packages/b5/a7/3f45be21951e48e0f367b1c87b7e00d3a9cd054bee8b6e13a35b0f652c6f/geopy-2.3.0.tar.gz"
+            }
+          ],
+          "project_name": "geopy",
+          "requires_dists": [
+            "aiohttp; extra == \"aiohttp\"",
+            "coverage; extra == \"dev\"",
+            "coverage; extra == \"dev-test\"",
+            "flake8<5.1,>=5.0; extra == \"dev\"",
+            "flake8<5.1,>=5.0; extra == \"dev-lint\"",
+            "geographiclib<3,>=1.52",
+            "isort<5.11.0,>=5.10.0; extra == \"dev\"",
+            "isort<5.11.0,>=5.10.0; extra == \"dev-lint\"",
+            "pytest-asyncio>=0.17; extra == \"dev\"",
+            "pytest-asyncio>=0.17; extra == \"dev-test\"",
+            "pytest>=3.10; extra == \"dev\"",
+            "pytest>=3.10; extra == \"dev-test\"",
+            "pytz; extra == \"timezone\"",
+            "readme-renderer; extra == \"dev\"",
+            "readme-renderer; extra == \"dev-docs\"",
+            "requests>=2.16.2; extra == \"requests\"",
+            "sphinx-issues; extra == \"dev\"",
+            "sphinx-issues; extra == \"dev-docs\"",
+            "sphinx-rtd-theme>=0.5.0; extra == \"dev\"",
+            "sphinx-rtd-theme>=0.5.0; extra == \"dev-docs\"",
+            "sphinx<=4.3.2; extra == \"dev\"",
+            "sphinx<=4.3.2; extra == \"dev-docs\"",
+            "sphinx<=4.3.2; extra == \"dev-test\"",
+            "urllib3>=1.24.2; extra == \"requests\""
+          ],
+          "requires_python": ">=3.7",
+          "version": "2.3.0"
         },
         {
           "artifacts": [
@@ -806,6 +868,7 @@
   "pip_version": "20.3.4-patched",
   "prefer_older_binary": false,
   "requirements": [
+    "geopy",
     "uszipcode"
   ],
   "requires_python": [
