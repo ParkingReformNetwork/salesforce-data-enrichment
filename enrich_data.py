@@ -25,6 +25,10 @@ def process_row(row: dict[str, Any]) -> dict[str, Any]:
     if result["MailingCountry"] in ("US", "United States"):
         result["MailingCountry"] = "USA"
 
+    # Lowercase all-caps city names.
+    if result["MailingCity"].isupper():
+        result["MailingCity"] = result["MailingCity"].title()
+
     # Normalize US zip codes to be 5 digits.
     if result["MailingCountry"] == "USA" and len(result["MailingPostalCode"]) > 5:
         assert result["MailingPostalCode"][5] == "-"
