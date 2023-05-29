@@ -6,6 +6,7 @@ from geopy import Nominatim
 from uszipcode import SearchEngine
 
 from hardcoded_addresses import ADDRESS_STRINGS
+from state_codes import US_STATES_TO_CODES
 
 
 def main() -> None:
@@ -94,6 +95,10 @@ def process_row(
     # Normalize country code.
     if result["MailingCountry"] in ("US", "United States"):
         result["MailingCountry"] = "USA"
+
+    # Convert US state names to two-digit codes.
+    if result["MailingCountry"] == "USA" and len(result["MailingState"]) > 2:
+        result["MailingState"] = US_STATES_TO_CODES[result["MailingState"]]
 
     # Lowercase all-caps city names.
     if result["MailingCity"].isupper():
