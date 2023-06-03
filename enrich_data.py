@@ -14,20 +14,33 @@ def main() -> None:
         raw_original_data = csv.DictReader(f)
         original_data = list(raw_original_data)
     with Path("subscribed_members_export.csv").open() as f:
-        raw_subscribed_members_data = csv.DictReader(f)
         subscribed_members_by_email = {
-            row["Email Address"]: {**row} for row in raw_subscribed_members_data
+            row["Email Address"]: {**row} for row in csv.DictReader(f)
+        }
+    with Path("us-zip-to-metro.csv").open() as f:
+        us_zip_to_metro_name = {
+            row["Zip Code"]: row["Primary CBSA Name"]
+            for row in csv.DictReader(f)
+            if row["Primary CBSA Name"]
         }
 
     zipcode_search_engine = SearchEngine()
     geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment")
     result = [
-        process_row(row, zipcode_search_engine, geocoder, subscribed_members_by_email)
+        process_row(
+            row,
+            zipcode_search_engine,
+            geocoder,
+            subscribed_members_by_email,
+            us_zip_to_metro_name,
+        )
         for row in original_data
     ]
     with Path("result.csv").open("w", newline="") as f:
         writer = csv.DictWriter(
-            f, fieldnames=raw_original_data.fieldnames, quoting=csv.QUOTE_ALL
+            f,
+            fieldnames=[*raw_original_data.fieldnames, "MetropolitanArea"],
+            quoting=csv.QUOTE_ALL,
         )
         writer.writeheader()
         writer.writerows(result)
@@ -38,6 +51,7 @@ def process_row(
     zipcode_search_engine: SearchEngine,
     geocoder: Nominatim,
     subscribed_members_by_email: dict[str, dict[str, Any]],
+    us_zip_to_metro_name: dict[str, str],
 ) -> dict[str, Any]:
     result = {**row}
 
@@ -121,6 +135,12 @@ def process_row(
         if not result["MailingCity"]:
             result["MailingCity"] = zipcode_info.major_city
 
+    # Add metro area for US zip codes.
+    result["MetropolitanArea"] = (
+        us_zip_to_metro_name.get(result["MailingPostalCode"], "")
+        if result["MailingCountry"] == "USA" and result["MailingPostalCode"]
+        else ""
+    )
     return result
 
 
