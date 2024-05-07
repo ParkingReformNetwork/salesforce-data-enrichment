@@ -1,3 +1,4 @@
 geopy
 uszipcode
 python-Levenshtein
+pydantic
