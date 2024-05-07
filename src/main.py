@@ -7,7 +7,6 @@ from uszipcode import SearchEngine
 
 from salesforce_entry import SalesforceEntry
 from hardcoded_addresses import ADDRESS_STRINGS
-from state_codes import US_STATES_TO_CODES
 
 
 def main() -> None:
@@ -55,7 +54,7 @@ def process_salesforce_entry(
 ) -> None:
     # Enrich Salesforce location data with Mailchimp data.
     if entry.email in mailchimp_by_email and (
-        not entry.country or not entry.state or not entry.city or not entry.zip
+        not entry.country or not entry.state or not entry.city or not entry.zipcode
     ):
         mailchimp_data = mailchimp_by_email[entry.email]
 
@@ -68,8 +67,8 @@ def process_salesforce_entry(
                 entry.state = mailchimp_addr.state
             if not entry.city:
                 entry.city = mailchimp_addr.city
-            if not entry.zip:
-                entry.zip = mailchimp_addr.postal
+            if not entry.zipcode:
+                entry.zipcode = mailchimp_addr.postal
             if not entry.street:
                 entry.street = mailchimp_addr.street
 
@@ -88,8 +87,8 @@ def process_salesforce_entry(
                 entry.state = addr.get("state", "")
             if not entry.city:
                 entry.city = addr.get("city", "")
-            if not entry.zip:
-                entry.zip = addr.get("postcode", "")
+            if not entry.zipcode:
+                entry.zipcode = addr.get("postcode", "")
 
         # Finally, see if the city, state/province, country was set. This data comes from us, not
         # the IP address.
@@ -104,37 +103,9 @@ def process_salesforce_entry(
             if not entry.city:
                 entry.city = city.strip()
 
-    # Normalize country code.
-    if entry.country in ("US", "United States"):
-        entry.country = "USA"
-
-    # Convert US state names to two-digit codes.
-    if entry.country == "USA" and len(entry.state) > 2:
-        entry.state = US_STATES_TO_CODES[entry.state]
-
-    # Lowercase all-caps city names.
-    if entry.city.isupper():
-        entry.city = entry.city.title()
-
-    # Normalize US zip codes to be 5 digits.
-    if entry.country == "USA" and len(entry.zip) > 5:
-        assert entry.zip[5] == "-"
-        entry.zip = entry.zip[:5]
-
-    # If missing, look up City and State for US zip codes.
-    if entry.country == "USA" and entry.zip and (not entry.state or not entry.city):
-        zipcode_info = zipcode_search_engine.by_zipcode(entry.zip)
-        if not entry.state:
-            entry.state = zipcode_info.state
-        if not entry.city:
-            entry.city = zipcode_info.major_city
-
-    # Add metro area for US zip codes.
-    entry.metro = (
-        us_zip_to_metro_name.get(entry.zip, "")
-        if entry.country == "USA" and entry.zip
-        else ""
-    )
+    entry.normalize()
+    entry.populate_city_via_zipcode(zipcode_search_engine)
+    entry.populate_metro_area(us_zip_to_metro_name)
 
 
 if __name__ == "__main__":
