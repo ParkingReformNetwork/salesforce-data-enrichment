@@ -10,14 +10,14 @@ from state_codes import US_STATES_TO_CODES
 
 
 def main() -> None:
-    with Path("salesforce.csv").open() as f:
+    with Path("data/salesforce.csv").open() as f:
         raw_original_data = csv.DictReader(f)
         original_data = list(raw_original_data)
-    with Path("mailchimp.csv").open() as f:
+    with Path("data/mailchimp.csv").open() as f:
         mailchimp_by_email = {
             row["Email Address"]: {**row} for row in csv.DictReader(f)
         }
-    with Path("us-zip-to-metro.csv").open() as f:
+    with Path("data/us-zip-to-metro.csv").open() as f:
         us_zip_to_metro_name = {
             row["Zip Code"]: row["Primary CBSA Name"]
             for row in csv.DictReader(f)
@@ -36,7 +36,7 @@ def main() -> None:
         )
         for row in original_data
     ]
-    with Path("result.csv").open("w", newline="") as f:
+    with Path("data/result.csv").open("w", newline="") as f:
         writer = csv.DictWriter(
             f,
             fieldnames=[*raw_original_data.fieldnames, "MetropolitanArea"],
