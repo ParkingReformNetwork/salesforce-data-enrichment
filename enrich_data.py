@@ -10,11 +10,11 @@ from state_codes import US_STATES_TO_CODES
 
 
 def main() -> None:
-    with Path("prn_contact_addresses.csv").open() as f:
+    with Path("salesforce.csv").open() as f:
         raw_original_data = csv.DictReader(f)
         original_data = list(raw_original_data)
-    with Path("subscribed_members_export.csv").open() as f:
-        subscribed_members_by_email = {
+    with Path("mailchimp.csv").open() as f:
+        mailchimp_by_email = {
             row["Email Address"]: {**row} for row in csv.DictReader(f)
         }
     with Path("us-zip-to-metro.csv").open() as f:
@@ -31,7 +31,7 @@ def main() -> None:
             row,
             zipcode_search_engine,
             geocoder,
-            subscribed_members_by_email,
+            mailchimp_by_email,
             us_zip_to_metro_name,
         )
         for row in original_data
@@ -50,19 +50,19 @@ def process_row(
     row: dict[str, Any],
     zipcode_search_engine: SearchEngine,
     geocoder: Nominatim,
-    subscribed_members_by_email: dict[str, dict[str, Any]],
+    mailchimp_by_email: dict[str, dict[str, Any]],
     us_zip_to_metro_name: dict[str, str],
 ) -> dict[str, Any]:
     result = {**row}
 
     # Enrich Salesforce location data with Mailchimp data.
-    if (email := row["Email"]) in subscribed_members_by_email and (
+    if (email := row["Email"]) in mailchimp_by_email and (
         not result["MailingCountry"]
         or not result["MailingState"]
         or not result["MailingCity"]
         or not result["MailingPostalCode"]
     ):
-        mailchimp_data = subscribed_members_by_email[email]
+        mailchimp_data = mailchimp_by_email[email]
 
         # If there's an exact address, use that.
         if addr := mailchimp_data["Address"]:
