@@ -21,6 +21,32 @@ class SalesforceEntry(BaseModel):
     street: str = Field(..., alias="MailingStreet")
     metro: str = Field("", alias="MetropolitanArea")
 
+    @classmethod
+    def mock(
+        cls,
+        *,
+        city: Optional[str] = None,
+        country: Optional[str] = None,
+        latitude: Optional[str] = None,
+        longitude: Optional[str] = None,
+        zipcode: Optional[str] = None,
+        state: Optional[str] = None,
+        street: Optional[str] = None,
+        metro: Optional[str] = None,
+    ) -> "SalesforceEntry":
+        return cls(
+            Email="tech@parkingreform.org",
+            Id="12345",
+            MailingCity=city or "",
+            MailingCountry=country or "",
+            MailingLatitude=latitude or "",
+            MailingLongitude=longitude or "",
+            MailingPostalCode=zipcode or "",
+            MailingState=state or "",
+            MailingStreet=street or "",
+            MetropolitanArea=metro or "",
+        )
+
     def normalize(self) -> None:
         """Normalize the country code, state, city, and zip.
 

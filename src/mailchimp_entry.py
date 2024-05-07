@@ -24,3 +24,22 @@ class MailchimpEntry(BaseModel):
         if len(split) != 3:
             return None
         return split[0].strip(), split[1].strip(), split[2].strip()
+
+    @classmethod
+    def mock(
+        cls,
+        *,
+        address: Optional[str] = None,
+        latitude: Optional[str] = None,
+        longitude: Optional[str] = None,
+        city_state_country: Optional[str] = None,
+    ) -> "MailchimpEntry":
+        return cls(
+            **{
+                "Email Address": "",
+                "Address": address or "",
+                "LATITUDE": latitude or "",
+                "LONGITUDE": longitude or "",
+                "City, State/Province, Country": city_state_country or "",
+            }
+        )

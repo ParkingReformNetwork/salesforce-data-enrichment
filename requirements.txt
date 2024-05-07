@@ -2,3 +2,4 @@ geopy
 uszipcode
 python-Levenshtein
 pydantic
+pytest
