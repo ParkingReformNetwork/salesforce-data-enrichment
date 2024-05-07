@@ -50,18 +50,13 @@ def process_salesforce_entry(
         mailchimp_data = mailchimp_by_email[entry.email]
 
         # If there's an exact address, use that.
-        if addr := mailchimp_data["Address"]:
-            mailchimp_addr = ADDRESS_STRINGS[addr]
-            if not entry.country:
-                entry.country = mailchimp_addr.country
-            if not entry.state:
-                entry.state = mailchimp_addr.state
-            if not entry.city:
-                entry.city = mailchimp_addr.city
-            if not entry.zipcode:
-                entry.zipcode = mailchimp_addr.postal
-            if not entry.street:
-                entry.street = mailchimp_addr.street
+        if raw_addr := mailchimp_data["Address"]:
+            addr = ADDRESS_STRINGS[raw_addr]
+            entry.country = addr.country
+            entry.state = addr.state
+            entry.city = addr.city
+            entry.zipcode = addr.postal
+            entry.street = addr.street
 
         # Next, reverse geocode the lat/long. This allows us to get a zip code.
         elif (lat := mailchimp_data["LATITUDE"]) and (
@@ -87,12 +82,9 @@ def process_salesforce_entry(
             city_str_split := mailchimp_data["City, State/Province, Country"].split(",")
         ) and len(city_str_split) == 3:
             city, state, country = city_str_split
-            if not entry.country:
-                entry.country = country.strip()
-            if not entry.state:
-                entry.state = state.strip()
-            if not entry.city:
-                entry.city = city.strip()
+            entry.country = country.strip()
+            entry.state = state.strip()
+            entry.city = city.strip()
 
     entry.normalize()
     entry.populate_city_via_zipcode(zipcode_search_engine)
