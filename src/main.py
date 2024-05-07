@@ -92,7 +92,7 @@ def process_salesforce_entry(
 
 
 def read_us_zip_to_metro(fp: str) -> dict[str, str]:
-    with Path("data/us-zip-to-metro.csv").open() as f:
+    with Path(fp).open() as f:
         return {
             row["Zip Code"]: row["Primary CBSA Name"]
             for row in csv.DictReader(f)
