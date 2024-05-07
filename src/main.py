@@ -11,19 +11,13 @@ from hardcoded_addresses import ADDRESS_STRINGS
 
 def main() -> None:
     with Path("data/salesforce.csv").open() as f:
-        raw_original_data = csv.DictReader(f)
-        entries = [SalesforceEntry(**row) for row in raw_original_data]
+        entries = [SalesforceEntry(**row) for row in csv.DictReader(f)]
     with Path("data/mailchimp.csv").open() as f:
         mailchimp_by_email = {
             row["Email Address"]: {**row} for row in csv.DictReader(f)
         }
-    with Path("data/us-zip-to-metro.csv").open() as f:
-        us_zip_to_metro_name = {
-            row["Zip Code"]: row["Primary CBSA Name"]
-            for row in csv.DictReader(f)
-            if row["Primary CBSA Name"]
-        }
 
+    us_zip_to_metro_name = read_us_zip_to_metro("data/us-zip-to-metro.csv")
     zipcode_search_engine = SearchEngine()
     geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment")
     for entry in entries:
@@ -36,13 +30,10 @@ def main() -> None:
         )
 
     with Path("data/result.csv").open("w", newline="") as f:
-        writer = csv.DictWriter(
-            f,
-            fieldnames=[*raw_original_data.fieldnames, "MetropolitanArea"],
-            quoting=csv.QUOTE_ALL,
-        )
+        result = [entry.model_dump(by_alias=True) for entry in entries]
+        writer = csv.DictWriter(f, fieldnames=result[0].keys(), quoting=csv.QUOTE_ALL)
         writer.writeheader()
-        writer.writerows([entry.model_dump(by_alias=True) for entry in entries])
+        writer.writerows(result)
 
 
 def process_salesforce_entry(
@@ -106,6 +97,15 @@ def process_salesforce_entry(
     entry.normalize()
     entry.populate_city_via_zipcode(zipcode_search_engine)
     entry.populate_metro_area(us_zip_to_metro_name)
+
+
+def read_us_zip_to_metro(fp: str) -> dict[str, str]:
+    with Path("data/us-zip-to-metro.csv").open() as f:
+        return {
+            row["Zip Code"]: row["Primary CBSA Name"]
+            for row in csv.DictReader(f)
+            if row["Primary CBSA Name"]
+        }
 
 
 if __name__ == "__main__":
