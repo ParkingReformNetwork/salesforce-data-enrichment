@@ -82,6 +82,8 @@ def process_row(
         elif (lat := mailchimp_data["LATITUDE"]) and (
             long := mailchimp_data["LONGITUDE"]
         ):
+            result["MailingLatitude"] = mailchimp_data["LATITUDE"]
+            result["MailingLongitude"] = mailchimp_data["LONGITUDE"]
             long = long.lstrip("'")
             addr = geocoder.reverse(f"{lat}, {long}").raw["address"]
             if not result["MailingCountry"]:
