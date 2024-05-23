@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 
 from mailchimp_entry import MailchimpEntry
 from state_codes import US_STATES_TO_CODES
-from hardcoded_addresses import ADDRESS_STRINGS
 
 
 class SalesforceEntry(BaseModel):
@@ -74,16 +73,6 @@ class SalesforceEntry(BaseModel):
         if mailchimp is None or (
             self.country and self.state and self.city and self.zipcode
         ):
-            return
-
-        # If there's an exact address, use that.
-        if mailchimp.address:
-            addr = ADDRESS_STRINGS[mailchimp.address]
-            self.country = addr.country
-            self.state = addr.state
-            self.city = addr.city
-            self.zipcode = addr.postal
-            self.street = addr.street
             return
 
         # Next, reverse geocode the lat/long. This allows us to get a zip code.

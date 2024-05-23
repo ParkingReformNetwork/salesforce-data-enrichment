@@ -93,17 +93,6 @@ def test_populate_city_via_zipcode(
     assert entry.city == expected_city
 
 
-def test_populate_mailchimp_via_address() -> None:
-    mailchimp = MailchimpEntry.mock(address="920 E Campus St    Urbana  IL  71825  US")
-    entry = SalesforceEntry.mock()
-    entry.populate_via_mailchimp(mailchimp, geocoder_mock)
-    assert entry.street == "920 E Campus St"
-    assert entry.city == "Urbana"
-    assert entry.state == "IL"
-    assert entry.zipcode == "71825"
-    assert entry.country == "USA"
-
-
 def test_populate_mailchimp_via_lat_long(geocoder_mock) -> None:
     mailchimp = MailchimpEntry.mock(latitude="1.1", longitude="'4.2")
     entry = SalesforceEntry.mock()
@@ -114,15 +103,6 @@ def test_populate_mailchimp_via_lat_long(geocoder_mock) -> None:
     assert entry.zipcode == "11370"
     assert entry.latitude == "1.1"
     assert entry.longitude == "4.2"
-
-
-def test_populate_mailchimp_via_city_state_field(geocoder_mock) -> None:
-    mailchimp = MailchimpEntry.mock(city_state_country="New York,NY,USA")
-    entry = SalesforceEntry.mock()
-    entry.populate_via_mailchimp(mailchimp, geocoder_mock)
-    assert entry.city == "New York"
-    assert entry.state == "NY"
-    assert entry.country == "USA"
 
 
 @pytest.mark.parametrize(
