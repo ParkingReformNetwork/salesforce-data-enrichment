@@ -4,7 +4,7 @@ from pathlib import Path
 from geopy import Nominatim
 from uszipcode import SearchEngine
 
-from zip_to_metro import read_us_zip_to_metro
+import metro_csvs
 from mailchimp_entry import MailchimpEntry
 from salesforce_entry import SalesforceEntry
 
@@ -17,7 +17,8 @@ def main() -> None:
             row["Email Address"]: MailchimpEntry(**row) for row in csv.DictReader(f)
         }
 
-    us_zip_to_metro_name = read_us_zip_to_metro()
+    us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
+    us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
     zipcode_search_engine = SearchEngine()
     geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment")
 
@@ -28,7 +29,7 @@ def main() -> None:
         )
         entry.normalize()
         entry.populate_via_zipcode(zipcode_search_engine)
-        entry.populate_metro_area(us_zip_to_metro_name)
+        entry.populate_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
 
     with Path("data/result.csv").open("w", newline="") as f:
         result = [entry.model_dump(by_alias=True) for entry in entries]

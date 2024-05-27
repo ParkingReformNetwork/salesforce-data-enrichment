@@ -106,15 +106,18 @@ def test_populate_via_lat_long(geocoder_mock) -> None:
 
 
 @pytest.mark.parametrize(
-    "country,zip,expected",
+    "country,zip,city,state,expected",
     [
-        ("USA", "11370", "New York"),
-        ("USA", "99999", ""),
-        ("USA", "", ""),
-        ("MEX", "11370", ""),
+        ("USA", "11370", "Flushing", "NY", "My Metro"),
+        ("USA", "99999", "Flushing", "NY", ""),
+        ("USA", "", "Tempe", "AZ", "My Metro"),
+        ("USA", "", "", "", ""),
+        ("MEX", "11370", "Tempe", "AZ", ""),
     ],
 )
-def test_populate_metro_area(country: str, zip: str, expected: str) -> None:
-    entry = SalesforceEntry.mock(country=country, zipcode=zip)
-    entry.populate_metro_area({"11370": "New York"})
+def test_populate_metro_area(
+    country: str, zip: str, city: str, state: str, expected: str
+) -> None:
+    entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
+    entry.populate_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
     assert entry.metro == expected
