@@ -10,6 +10,6 @@ backend_packages = [
 enabled = false
 
 [python]
-interpreter_constraints = [">=3.9"]
+interpreter_constraints = [">=3.10"]
 enable_resolves = true
 resolves = { python-default = "default.lock" }
