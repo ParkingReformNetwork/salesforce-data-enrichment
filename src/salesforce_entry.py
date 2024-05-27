@@ -93,11 +93,6 @@ class SalesforceEntry(BaseModel):
                 self.zipcode = addr.get("postcode", "")
             return
 
-        # Finally, see if the city, state/province, country was set. This data comes from us, not
-        # the IP address.
-        if mailchimp.city_state_country:
-            self.city, self.state, self.country = mailchimp.city_state_country
-
     def populate_city_via_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
         """Look up city and state for US zip codes."""
         if self.country != "USA" or not self.zipcode or (self.state and self.city):
