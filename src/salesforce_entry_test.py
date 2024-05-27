@@ -68,7 +68,7 @@ def test_normalize_city_capitalization(arg: str, expected: str) -> None:
         ("USA", "11370-2314", "11370"),
         ("USA", "11370", "11370"),
         ("USA", "", ""),
-        ("MEX", "11370", "11370"),
+        ("MEX", "11370-54", "11370-54"),
     ],
 )
 def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> None:
@@ -84,19 +84,19 @@ def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> Non
         ("MEX", "11370", "", ""),
     ],
 )
-def test_populate_city_via_zipcode(
+def test_populate_via_zipcode(
     country: str, zip: str, expected_state: str, expected_city: str
 ) -> None:
     entry = SalesforceEntry.mock(country=country, zipcode=zip)
-    entry.populate_city_via_zipcode(SearchEngine())
+    entry.populate_via_zipcode(SearchEngine())
     assert entry.state == expected_state
     assert entry.city == expected_city
 
 
-def test_populate_mailchimp_via_lat_long(geocoder_mock) -> None:
+def test_populate_via_lat_long(geocoder_mock) -> None:
     mailchimp = MailchimpEntry.mock(latitude="1.1", longitude="'4.2")
     entry = SalesforceEntry.mock()
-    entry.populate_via_mailchimp(mailchimp, geocoder_mock)
+    entry.populate_via_latitude_longitude(mailchimp, geocoder_mock)
     assert entry.city == "New York"
     assert entry.state == "NY"
     assert entry.country == "USA"

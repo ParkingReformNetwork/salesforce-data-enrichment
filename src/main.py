@@ -23,9 +23,11 @@ def main() -> None:
 
     for entry in entries:
         # The order of operations matters.
-        entry.populate_via_mailchimp(mailchimp_by_email.get(entry.email), geocoder)
+        entry.populate_via_latitude_longitude(
+            mailchimp_by_email.get(entry.email), geocoder
+        )
         entry.normalize()
-        entry.populate_city_via_zipcode(zipcode_search_engine)
+        entry.populate_via_zipcode(zipcode_search_engine)
         entry.populate_metro_area(us_zip_to_metro_name)
 
     with Path("data/result.csv").open("w", newline="") as f:

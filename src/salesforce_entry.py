@@ -64,44 +64,43 @@ class SalesforceEntry(BaseModel):
 
         # Normalize US zip codes to be 5 digits.
         if self.country == "USA" and len(self.zipcode) > 5:
-            assert self.zipcode[5] == "-"
+            if self.zipcode[5] != "-":
+                raise AssertionError(f"Unexpected zipcode for {self}")
             self.zipcode = self.zipcode[:5]
 
-    def populate_via_mailchimp(
+    def populate_via_latitude_longitude(
         self, mailchimp: Optional[MailchimpEntry], geocoder: Nominatim
     ) -> None:
-        if mailchimp is None or (
-            self.country and self.state and self.city and self.zipcode
-        ):
+        mailchimp_missing = mailchimp is None or not (
+            mailchimp.latitude and mailchimp.longitude
+        )
+        if self.zipcode or mailchimp_missing:
             return
 
-        # Next, reverse geocode the lat/long. This allows us to get a zip code.
-        if mailchimp.latitude and mailchimp.longitude:
-            self.latitude = mailchimp.latitude
-            self.longitude = mailchimp.longitude
-
-            addr = geocoder.reverse(f"{mailchimp.latitude}, {mailchimp.longitude}").raw[
-                "address"
-            ]
-            if not self.country:
-                self.country = addr.get("country_code", "").upper()
-            if not self.state:
-                self.state = addr.get("state", "")
-            if not self.city:
-                self.city = addr.get("city", "")
-            if not self.zipcode:
-                self.zipcode = addr.get("postcode", "")
+        addr = geocoder.reverse(f"{mailchimp.latitude}, {mailchimp.longitude}").raw[
+            "address"
+        ]
+        if "postcode" not in addr:
             return
 
-    def populate_city_via_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
+        self.latitude = mailchimp.latitude
+        self.longitude = mailchimp.longitude
+        self.zipcode = addr["postcode"]
+
+        # Also overwrite any existing values so that we don't mix the prior address
+        # with the new one.
+        self.street = None
+        self.country = addr.get("country_code", "").upper()
+        self.state = addr.get("state", "")
+        self.city = addr.get("city", "")
+
+    def populate_via_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
         """Look up city and state for US zip codes."""
         if self.country != "USA" or not self.zipcode or (self.state and self.city):
             return
         zipcode_info = zipcode_search_engine.by_zipcode(self.zipcode)
-        if not self.state:
-            self.state = zipcode_info.state
-        if not self.city:
-            self.city = zipcode_info.major_city
+        self.state = zipcode_info.state
+        self.city = zipcode_info.major_city
 
     def populate_metro_area(self, us_zip_to_metro_name: dict[str, str]) -> None:
         self.metro = (
