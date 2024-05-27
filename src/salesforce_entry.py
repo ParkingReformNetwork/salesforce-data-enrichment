@@ -102,9 +102,14 @@ class SalesforceEntry(BaseModel):
         self.state = zipcode_info.state
         self.city = zipcode_info.major_city
 
-    def populate_metro_area(self, us_zip_to_metro_name: dict[str, str]) -> None:
-        self.metro = (
-            us_zip_to_metro_name.get(self.zipcode, "")
-            if self.country == "USA" and self.zipcode
-            else ""
+    def populate_metro_area(
+        self,
+        us_zip_to_metro: dict[str, str],
+        us_city_and_state_to_metro: dict[tuple[str, str], str],
+    ) -> None:
+        if self.country != "USA":
+            return
+        metro = us_zip_to_metro.get(self.zipcode) or us_city_and_state_to_metro.get(
+            (self.city, self.state)
         )
+        self.metro = metro or ""

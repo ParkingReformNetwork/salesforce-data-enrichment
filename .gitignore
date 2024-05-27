@@ -6,4 +6,6 @@ __pycache__
 .venv/
 .envrc
 
-data/
+data/mailchimp.csv
+data/result.csv
+data/salesforce.csv
