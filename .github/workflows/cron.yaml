@@ -1,8 +1,11 @@
-name: Tests
-on: [pull_request, workflow_dispatch]
+name: Check for updates
+on:
+  schedule:
+    - cron: "0 8 * * *" # Runs every day at 12 midnight PT
+  workflow_dispatch:
 
 jobs:
-  test:
+  check-updates:
     if: github.repository_owner == 'ParkingReformNetwork'
     runs-on: ubuntu-latest
     steps:
@@ -14,9 +17,8 @@ jobs:
         with:
           gha-cache-key: cache0-py${{ matrix.python_version }}
           named-caches-hash: ${{ hashFiles('*.lock') }}
-      - name: Lint
-        run: pants lint '::'
-      - name: Typecheck
-        run: pants check '::'
-      - name: Run tests
-        run: pants test '::'
+      - name: Update records
+        run: pants run src/main.py -- --write
+        env:
+          SALESFORCE_INSTANCE_URL: ${{ secrets.SALESFORCE_INSTANCE_URL }}
+          SALESFORCE_TOKEN: ${{ secrets.SALESFORCE_TOKEN }}
