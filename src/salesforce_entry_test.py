@@ -67,7 +67,7 @@ def test_normalize_city_capitalization(arg: str, expected: str) -> None:
     [
         ("USA", "11370-2314", "11370"),
         ("USA", "11370", "11370"),
-        ("USA", "", ""),
+        ("USA", None, None),
         ("MEX", "11370-54", "11370-54"),
     ],
 )
@@ -81,7 +81,7 @@ def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> Non
     "country,zip,expected_state,expected_city",
     [
         ("USA", "11370", "NY", "East Elmhurst"),
-        ("MEX", "11370", "", ""),
+        ("MEX", "11370", None, None),
     ],
 )
 def test_populate_via_zipcode(
@@ -109,10 +109,10 @@ def test_populate_via_lat_long(geocoder_mock) -> None:
     "country,zip,city,state,expected",
     [
         ("USA", "11370", "Flushing", "NY", "My Metro"),
-        ("USA", "99999", "Flushing", "NY", ""),
-        ("USA", "", "Tempe", "AZ", "My Metro"),
-        ("USA", "", "", "", ""),
-        ("MEX", "11370", "Tempe", "AZ", ""),
+        ("USA", "99999", "Flushing", "NY", None),
+        ("USA", None, "Tempe", "AZ", "My Metro"),
+        ("USA", None, None, None, None),
+        ("MEX", "11370", "Tempe", "AZ", None),
     ],
 )
 def test_populate_metro_area(

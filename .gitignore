@@ -7,5 +7,5 @@ __pycache__
 .envrc
 
 data/mailchimp.csv
-data/result.csv
+data/result*.csv
 data/salesforce.csv

@@ -13,3 +13,4 @@ enabled = false
 interpreter_constraints = [">=3.10"]
 enable_resolves = true
 resolves = { python-default = "default.lock" }
+resolves_to_constraints_file = { python-default = "constraints.txt" }

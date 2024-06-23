@@ -1,5 +1,3 @@
-from typing import Optional
-
 from geopy import Nominatim
 from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
@@ -9,41 +7,41 @@ from state_codes import US_STATES_TO_CODES
 
 
 class SalesforceEntry(BaseModel):
-    email: str = Field(..., alias="Email", frozen=True)
     uid: str = Field(..., alias="Id", frozen=True)
-    city: str = Field(..., alias="MailingCity")
-    country: str = Field(..., alias="MailingCountry")
-    latitude: str = Field(..., alias="MailingLatitude")
-    longitude: str = Field(..., alias="MailingLongitude")
-    zipcode: str = Field(..., alias="MailingPostalCode")
-    state: str = Field(..., alias="MailingState")
-    street: str = Field(..., alias="MailingStreet")
-    metro: str = Field("", alias="MetropolitanArea")
+    email: str | None = Field(..., alias="Email", frozen=True)
+    city: str | None = Field(..., alias="MailingCity")
+    country: str | None = Field(..., alias="MailingCountry")
+    latitude: str | None = Field(..., alias="MailingLatitude")
+    longitude: str | None = Field(..., alias="MailingLongitude")
+    zipcode: str | None = Field(..., alias="MailingPostalCode")
+    state: str | None = Field(..., alias="MailingState")
+    street: str | None = Field(..., alias="MailingStreet")
+    metro: str | None = Field(..., alias="Metro_Area__c")
 
     @classmethod
     def mock(
         cls,
         *,
-        city: Optional[str] = None,
-        country: Optional[str] = None,
-        latitude: Optional[str] = None,
-        longitude: Optional[str] = None,
-        zipcode: Optional[str] = None,
-        state: Optional[str] = None,
-        street: Optional[str] = None,
-        metro: Optional[str] = None,
+        city: str | None = None,
+        country: str | None = None,
+        latitude: str | None = None,
+        longitude: str | None = None,
+        zipcode: str | None = None,
+        state: str | None = None,
+        street: str | None = None,
+        metro: str | None = None,
     ) -> "SalesforceEntry":
         return cls(
             Email="tech@parkingreform.org",
             Id="12345",
-            MailingCity=city or "",
-            MailingCountry=country or "",
-            MailingLatitude=latitude or "",
-            MailingLongitude=longitude or "",
-            MailingPostalCode=zipcode or "",
-            MailingState=state or "",
-            MailingStreet=street or "",
-            MetropolitanArea=metro or "",
+            MailingCity=city,
+            MailingCountry=country,
+            MailingLatitude=latitude,
+            MailingLongitude=longitude,
+            MailingPostalCode=zipcode,
+            MailingState=state,
+            MailingStreet=street,
+            Metro_Area__c=metro,
         )
 
     def normalize(self) -> None:
@@ -55,26 +53,29 @@ class SalesforceEntry(BaseModel):
             self.country = "USA"
 
         # Convert US state names to two-digit codes.
-        if self.country == "USA" and len(self.state) > 2:
+        if self.country == "USA" and self.state and len(self.state) > 2:
+            if self.state not in US_STATES_TO_CODES:
+                raise ValueError(f"Unrecognized state {self.state} for {self.uid}")
             self.state = US_STATES_TO_CODES[self.state]
 
         # Lowercase all-caps city names.
-        if self.city.isupper():
+        if self.city and self.city.isupper():
             self.city = self.city.title()
 
         # Normalize US zip codes to be 5 digits.
-        if self.country == "USA" and len(self.zipcode) > 5:
+        if self.country == "USA" and self.zipcode and len(self.zipcode) > 5:
             if self.zipcode[5] != "-":
                 raise AssertionError(f"Unexpected zipcode for {self}")
             self.zipcode = self.zipcode[:5]
 
     def populate_via_latitude_longitude(
-        self, mailchimp: Optional[MailchimpEntry], geocoder: Nominatim
+        self, mailchimp: MailchimpEntry | None, geocoder: Nominatim
     ) -> None:
         mailchimp_missing = mailchimp is None or not (
             mailchimp.latitude and mailchimp.longitude
         )
-        if self.zipcode or mailchimp_missing:
+        metro_area_can_be_computed = self.zipcode or (self.city and self.country)
+        if mailchimp_missing or metro_area_can_be_computed:
             return
 
         addr = geocoder.reverse(f"{mailchimp.latitude}, {mailchimp.longitude}").raw[
@@ -90,9 +91,9 @@ class SalesforceEntry(BaseModel):
         # Also overwrite any existing values so that we don't mix the prior address
         # with the new one.
         self.street = None
-        self.country = addr.get("country_code", "").upper()
-        self.state = addr.get("state", "")
-        self.city = addr.get("city", "")
+        self.country = addr.get("country_code", "").upper() or None
+        self.state = addr.get("state")
+        self.city = addr.get("city")
 
     def populate_via_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
         """Look up city and state for US zip codes."""
@@ -109,7 +110,6 @@ class SalesforceEntry(BaseModel):
     ) -> None:
         if self.country != "USA":
             return
-        metro = us_zip_to_metro.get(self.zipcode) or us_city_and_state_to_metro.get(
-            (self.city, self.state)
-        )
-        self.metro = metro or ""
+        self.metro = us_zip_to_metro.get(
+            self.zipcode
+        ) or us_city_and_state_to_metro.get((self.city, self.state))

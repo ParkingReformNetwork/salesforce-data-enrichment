@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -22,8 +20,8 @@ class MailchimpEntry(BaseModel):
     def mock(
         cls,
         *,
-        latitude: Optional[str] = None,
-        longitude: Optional[str] = None,
+        latitude: str | None = None,
+        longitude: str | None = None,
     ) -> "MailchimpEntry":
         return cls(
             **{

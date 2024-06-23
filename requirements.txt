@@ -4,3 +4,4 @@ uszipcode
 python-Levenshtein
 pydantic
 pytest
+simple-salesforce
