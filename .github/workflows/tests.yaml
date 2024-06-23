@@ -17,8 +17,8 @@ jobs:
           gha-cache-key: cache0-py${{ matrix.python_version }}
           named-caches-hash: ${{ hashFiles('*.lock') }}
       - name: Lint
-        run: pants lint ::
+        run: pants lint '::'
       - name: Typecheck
-        run: pants check ::
+        run: pants check '::'
       - name: Run tests
-        run: pants test ::
+        run: pants test '::'
