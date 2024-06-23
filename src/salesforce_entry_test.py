@@ -27,12 +27,14 @@ def geocoder_mock():
     "arg,expected",
     [
         ("US", "USA"),
+        ("AG", "ATG"),
         ("United States", "USA"),
+        ("India", "IND"),
         ("USA", "USA"),
         ("MEX", "MEX"),
     ],
 )
-def test_normalize_usa_country(arg: str, expected: str) -> None:
+def test_normalize_country(arg: str, expected: str) -> None:
     entry = SalesforceEntry.mock(country=arg)
     entry.normalize()
     assert entry.country == expected
