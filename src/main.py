@@ -1,21 +1,30 @@
-import csv
 import logging
-from pathlib import Path
+from argparse import ArgumentParser
 
 from geopy import Nominatim
 from uszipcode import SearchEngine
 
 import metro_csvs
+import salesforce_api
 from mailchimp_entry import MailchimpEntry
-from salesforce_api import init_salesforce_client, load_salesforce_data
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
+def create_parser() -> ArgumentParser:
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--write", action="store_true", help="Write results to Salesforce"
+    )
+    return parser
+
+
 def main() -> None:
-    salesforce_client = init_salesforce_client()
-    entries = load_salesforce_data(salesforce_client)
+    args = create_parser().parse_args()
+
+    salesforce_client = salesforce_api.init_client()
+    entries = salesforce_api.load_data(salesforce_client)
 
     # TODO: read in Mailchimp data
     mailchimp_by_email: dict[str, MailchimpEntry] = {}
@@ -45,11 +54,11 @@ def main() -> None:
 
     logger.info(f"Total changes made: {len(uid_to_changes)}")
 
-    with Path("data/result.csv").open("w", newline="") as f:
-        result = [entry.model_dump(by_alias=True) for entry in entries]
-        writer = csv.DictWriter(f, fieldnames=result[0].keys(), quoting=csv.QUOTE_ALL)
-        writer.writeheader()
-        writer.writerows(result)
+    if args.write:
+        salesforce_api.write_changes(salesforce_client, uid_to_changes)
+        logger.info(f"Updated Salesforce records ({len(uid_to_changes)} records)")
+    else:
+        logger.warning("Results not written to Salesforce.")
 
 
 if __name__ == "__main__":
