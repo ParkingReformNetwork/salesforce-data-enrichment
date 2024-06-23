@@ -71,11 +71,11 @@ class SalesforceEntry(BaseModel):
     def populate_via_latitude_longitude(
         self, mailchimp: MailchimpEntry | None, geocoder: Nominatim
     ) -> None:
-        mailchimp_missing = mailchimp is None or not (
-            mailchimp.latitude and mailchimp.longitude
-        )
+        if mailchimp is None or not (mailchimp.latitude and mailchimp.longitude):
+            return
+
         metro_area_can_be_computed = self.zipcode or (self.city and self.country)
-        if mailchimp_missing or metro_area_can_be_computed:
+        if metro_area_can_be_computed:
             return
 
         addr = geocoder.reverse(f"{mailchimp.latitude}, {mailchimp.longitude}").raw[
@@ -110,6 +110,12 @@ class SalesforceEntry(BaseModel):
     ) -> None:
         if self.country != "USA":
             return
-        self.metro = us_zip_to_metro.get(
-            self.zipcode
-        ) or us_city_and_state_to_metro.get((self.city, self.state))
+
+        new_metro = None
+        if self.zipcode:
+            new_metro = us_zip_to_metro.get(self.zipcode)
+        elif self.city and self.state:
+            new_metro = us_city_and_state_to_metro.get((self.city, self.state))
+
+        if new_metro is not None:
+            self.metro = new_metro

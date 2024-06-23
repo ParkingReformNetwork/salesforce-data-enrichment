@@ -6,15 +6,15 @@ from uszipcode import SearchEngine
 
 import metro_csvs
 from mailchimp_entry import MailchimpEntry
-from salesforce_entry import SalesforceEntry
-from salesforce_api import load_salesforce_data
+from salesforce_api import init_salesforce_client, load_salesforce_data
 
 
 def main() -> None:
-    entries = load_salesforce_data()
+    salesforce_client = init_salesforce_client()
+    entries = load_salesforce_data(salesforce_client)
 
     # TODO: read in Mailchimp data
-    mailchimp_by_email = {}
+    mailchimp_by_email: dict[str, MailchimpEntry] = {}
 
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
@@ -23,9 +23,10 @@ def main() -> None:
 
     for entry in entries:
         # The order of operations matters.
-        entry.populate_via_latitude_longitude(
-            mailchimp_by_email.get(entry.email), geocoder
-        )
+        if entry.email:
+            entry.populate_via_latitude_longitude(
+                mailchimp_by_email.get(entry.email), geocoder
+            )
         entry.normalize()
         entry.populate_via_zipcode(zipcode_search_engine)
         entry.populate_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
