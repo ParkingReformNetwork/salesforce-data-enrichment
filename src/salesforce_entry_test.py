@@ -121,3 +121,21 @@ def test_populate_metro_area(
     entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
     entry.populate_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
     assert entry.metro == expected
+
+
+def test_compute_changes() -> None:
+    entry = SalesforceEntry.mock()
+    original_model_dump = entry.model_dump(by_alias=True)
+
+    assert not entry.compute_changes(original_model_dump)
+
+    entry.city = "My City"
+    entry.zipcode = "11370"
+    updates = {"MailingCity": "My City", "MailingPostalCode": "11370"}
+    assert entry.compute_changes(original_model_dump) == updates
+    updated_model_dump = entry.model_dump(by_alias=True)
+
+    entry.country = "USA"
+    country_update = {"MailingCountry": "USA"}
+    assert entry.compute_changes(original_model_dump) == {**updates, **country_update}
+    assert entry.compute_changes(updated_model_dump) == country_update

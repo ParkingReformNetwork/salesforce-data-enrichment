@@ -44,6 +44,10 @@ class SalesforceEntry(BaseModel):
             Metro_Area__c=metro,
         )
 
+    def compute_changes(self, original_model_dump: dict[str, str]) -> dict[str, str]:
+        new_model_dump = self.model_dump(by_alias=True)
+        return {k: v for k, v in new_model_dump.items() if v != original_model_dump[k]}
+
     def normalize(self) -> None:
         """Normalize the country code, state, city, and zip.
 
