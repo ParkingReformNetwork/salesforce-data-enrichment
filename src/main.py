@@ -7,15 +7,14 @@ from uszipcode import SearchEngine
 import metro_csvs
 from mailchimp_entry import MailchimpEntry
 from salesforce_entry import SalesforceEntry
+from salesforce_api import load_salesforce_data
 
 
 def main() -> None:
-    with Path("data/salesforce.csv").open() as f:
-        entries = [SalesforceEntry(**row) for row in csv.DictReader(f)]
-    with Path("data/mailchimp.csv").open() as f:
-        mailchimp_by_email = {
-            row["Email Address"]: MailchimpEntry(**row) for row in csv.DictReader(f)
-        }
+    entries = load_salesforce_data()
+
+    # TODO: read in Mailchimp data
+    mailchimp_by_email = {}
 
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
