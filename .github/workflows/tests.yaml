@@ -1,0 +1,24 @@
+name: Tests
+on: [pull_request, workflow_dispatch]
+jobs:
+  test:
+    if: github.repository_owner == 'ParkingReformNetwork'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Initialize Pants
+        uses: pantsbuild/actions/init-pants@main
+        with:
+          gha-cache-key: cache0-py${{ matrix.python_version }}
+          named-caches-hash: ${{ hashFiles('*.lock') }}
+      - name: Lint
+        run: pants lint ::
+      - name: Typecheck
+        run: pants check ::
+      - name: Run tests
+        run: pants test ::
