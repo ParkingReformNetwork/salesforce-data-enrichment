@@ -3,6 +3,7 @@ from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
 
 from mailchimp_entry import MailchimpEntry
+from country_codes import COUNTRY_CODES_TWO_LETTER_TO_THREE, COUNTRY_NAMES_TO_THREE
 from state_codes import US_STATES_TO_CODES
 
 
@@ -53,8 +54,18 @@ class SalesforceEntry(BaseModel):
 
         This does not add any new data, only normalizes existing data.
         """
-        if self.country in ("US", "United States"):
-            self.country = "USA"
+        if self.country:
+            if len(self.country) == 2:
+                country = self.country.upper()
+                if country not in COUNTRY_CODES_TWO_LETTER_TO_THREE:
+                    raise ValueError(f"Unrecognized country '{country}' for {self.uid}")
+                self.country = COUNTRY_CODES_TWO_LETTER_TO_THREE[country]
+            elif len(self.country) > 3:
+                if self.country not in COUNTRY_NAMES_TO_THREE:
+                    raise ValueError(
+                        f"Unrecognized country '{self.country}' for {self.uid}"
+                    )
+                self.country = COUNTRY_NAMES_TO_THREE[self.country]
 
         # Convert US state names to two-digit codes.
         if self.country == "USA" and self.state and len(self.state) > 2:
