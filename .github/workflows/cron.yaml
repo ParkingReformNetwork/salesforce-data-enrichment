@@ -22,3 +22,4 @@ jobs:
         env:
           SALESFORCE_INSTANCE_URL: ${{ secrets.SALESFORCE_INSTANCE_URL }}
           SALESFORCE_TOKEN: ${{ secrets.SALESFORCE_TOKEN }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
