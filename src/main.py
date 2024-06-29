@@ -34,7 +34,7 @@ def main() -> None:
     zipcode_search_engine = SearchEngine()
     geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment")
 
-    uid_to_changes: dict[str, dict[str, str]] = {}
+    changed_records = 0
     for entry in entries:
         original_model_dump = entry.model_dump(by_alias=True)
 
@@ -48,17 +48,20 @@ def main() -> None:
         entry.populate_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
 
         changes = entry.compute_changes(original_model_dump)
-        if changes:
-            logger.info(f"Changes made to {entry.uid}: {sorted(changes.keys())}")
-            uid_to_changes[entry.uid] = changes
+        if not changes:
+            continue
 
-    logger.info(f"Total changes made: {len(uid_to_changes)}")
+        changed_records += 1
+        changed_keys = sorted(changes.keys())
+        if args.write:
+            salesforce_api.write_change(salesforce_client, entry.uid, changes)
+            logger.info(f"Changes saved to Salesforce for {entry.uid}: {changed_keys}")
+        else:
+            logger.info(
+                f"Changes computed (but not written) for {entry.uid}: {changed_keys}"
+            )
 
-    if args.write:
-        salesforce_api.write_changes(salesforce_client, uid_to_changes)
-        logger.info(f"Updated Salesforce records ({len(uid_to_changes)} records)")
-    else:
-        logger.warning("Results not written to Salesforce.")
+    logger.info(f"Total records changed: {changed_records}")
 
 
 if __name__ == "__main__":

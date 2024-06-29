@@ -10,6 +10,7 @@ US_STATES_TO_CODES = {
     "District of Columbia": "DC",
     "Florida": "FL",
     "Georgia": "GA",
+    "Guam": "GU",
     "Hawaii": "HI",
     "Idaho": "ID",
     "Illinois": "IL",
