@@ -24,3 +24,5 @@ jobs:
           SALESFORCE_PASSWORD: ${{ secrets.SALESFORCE_PASSWORD }}
           SALESFORCE_TOKEN: ${{ secrets.SALESFORCE_TOKEN }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          MAILCHIMP_KEY: ${{ secrets.MAILCHIMP_KEY }}
+          MAILCHIMP_LIST_ID: ${{ secrets.MAILCHIMP_LIST_ID }}

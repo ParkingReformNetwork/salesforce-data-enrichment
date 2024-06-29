@@ -6,13 +6,13 @@ from salesforce_entry import SalesforceEntry
 
 
 def init_client() -> Salesforce:
-    USERNAME = os.environ.pop("SALESFORCE_USERNAME")
-    PASSWORD = os.environ.pop("SALESFORCE_PASSWORD")
-    TOKEN = os.environ.pop("SALESFORCE_TOKEN")
+    username = os.environ.pop("SALESFORCE_USERNAME")
+    password = os.environ.pop("SALESFORCE_PASSWORD")
+    token = os.environ.pop("SALESFORCE_TOKEN")
     return Salesforce(
-        username=USERNAME,
-        password=PASSWORD,
-        security_token=TOKEN,
+        username=username,
+        password=password,
+        security_token=token,
         client_id="salesforce-data-enrichment",
     )
 

@@ -1,6 +1,7 @@
 [[tool.mypy.overrides]]
 module = [
     "geopy",
+    "mailchimp3",
     "uszipcode"
 ]
 ignore_missing_imports = true

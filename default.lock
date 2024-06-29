@@ -11,6 +11,7 @@
 //   "generated_with_requirements": [
 //     "cryptography",
 //     "geopy",
+//     "mailchimp3",
 //     "pydantic",
 //     "pytest",
 //     "python-Levenshtein",
@@ -1487,6 +1488,26 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "6eb335fcd915b3233285a0bdf6317fdfc412b4a638c102ae3a7a52019d3f0970",
+              "url": "https://files.pythonhosted.org/packages/5c/a9/772609122afc83ac149bb03ec92e2e91659b3d274e8dbfd0cd02ec5e78f7/mailchimp3-3.0.21-py2.py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "5e2930ece6144abb659d45e692e92135ab05c9027d3f5e807c0f66cfb374b9ad",
+              "url": "https://files.pythonhosted.org/packages/08/71/cdef8e888784c5da1186ce82e8d3414dc3d8e47a9fe7b62b483e217591eb/mailchimp3-3.0.21.tar.gz"
+            }
+          ],
+          "project_name": "mailchimp3",
+          "requires_dists": [
+            "requests>=2.7.0"
+          ],
+          "requires_python": null,
+          "version": "3.0.21"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "ea6a02e24a9161e51faad17a8782b92a0df82c12c1c8886fec7f0c3fa1a1b320",
               "url": "https://files.pythonhosted.org/packages/bb/23/2d1cdb0427aecb2b150dc2ac2d15400990c4f05585b3fbc1b5177d74d7fb/more_itertools-10.3.0-py3-none-any.whl"
             },
@@ -2604,6 +2625,7 @@
   "requirements": [
     "cryptography",
     "geopy",
+    "mailchimp3",
     "pydantic",
     "pytest",
     "python-Levenshtein",

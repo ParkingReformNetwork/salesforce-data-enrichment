@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 from uszipcode import SearchEngine
 
-from mailchimp_entry import MailchimpEntry
+from mailchimp_coordinates import Coordinates
 from salesforce_entry import SalesforceEntry
 
 
@@ -95,16 +95,16 @@ def test_populate_via_zipcode(
     assert entry.city == expected_city
 
 
-def test_populate_via_lat_long(geocoder_mock) -> None:
-    mailchimp = MailchimpEntry.mock(latitude="1.1", longitude="'4.2")
+def test_populate_via_coordinates(geocoder_mock) -> None:
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
     entry = SalesforceEntry.mock()
-    entry.populate_via_latitude_longitude(mailchimp, geocoder_mock)
+    entry.populate_via_coordinates(coordinates, geocoder_mock)
     assert entry.city == "New York"
     assert entry.state == "NY"
     assert entry.country == "USA"
     assert entry.zipcode == "11370"
-    assert entry.latitude == "1.1"
-    assert entry.longitude == "4.2"
+    assert entry.latitude == 1.1
+    assert entry.longitude == 4.2
 
 
 @pytest.mark.parametrize(
