@@ -231,6 +231,7 @@ COUNTRY_CODES_TWO_LETTER_TO_THREE = {
     "TW": "TWN",
     "TZ": "TZA",
     "UA": "UKR",
+    "UK": "GBA",
     "UG": "UGA",
     "UM": "UMI",
     "US": "USA",

@@ -6,9 +6,15 @@ from salesforce_entry import SalesforceEntry
 
 
 def init_client() -> Salesforce:
-    INSTANCE_URL = os.environ.pop("SALESFORCE_INSTANCE_URL")
+    USERNAME = os.environ.pop("SALESFORCE_USERNAME")
+    PASSWORD = os.environ.pop("SALESFORCE_PASSWORD")
     TOKEN = os.environ.pop("SALESFORCE_TOKEN")
-    return Salesforce(instance_url=INSTANCE_URL, session_id=TOKEN)
+    return Salesforce(
+        username=USERNAME,
+        password=PASSWORD,
+        security_token=TOKEN,
+        client_id="salesforce-data-enrichment",
+    )
 
 
 def load_data(client: Salesforce) -> list[SalesforceEntry]:
