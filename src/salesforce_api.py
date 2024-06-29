@@ -27,8 +27,5 @@ def load_data(client: Salesforce) -> list[SalesforceEntry]:
     ]
 
 
-def write_changes(
-    client: Salesforce, uid_to_changes: dict[str, dict[str, str]]
-) -> None:
-    for uid, changes in uid_to_changes.items():
-        client.Contact.update(uid, changes)  # type: ignore[operator]
+def write_change(client: Salesforce, uid: str, changes: dict[str, str]) -> None:
+    client.Contact.update(uid, changes)  # type: ignore[operator]
