@@ -115,8 +115,9 @@ class SalesforceEntry(BaseModel):
         if self.country != "USA" or not self.zipcode or (self.state and self.city):
             return
         zipcode_info = zipcode_search_engine.by_zipcode(self.zipcode)
-        self.state = zipcode_info.state
-        self.city = zipcode_info.major_city
+        if zipcode_info:
+            self.state = zipcode_info.state
+            self.city = zipcode_info.major_city
 
     def populate_metro_area(
         self,
