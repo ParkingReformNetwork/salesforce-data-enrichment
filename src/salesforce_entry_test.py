@@ -96,15 +96,15 @@ def test_populate_via_zipcode(
 
 
 def test_populate_via_coordinates(geocoder_mock) -> None:
-    coordinates = Coordinates(latitude="1.1", longitude="4.2")
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
     entry = SalesforceEntry.mock()
     entry.populate_via_coordinates(coordinates, geocoder_mock)
     assert entry.city == "New York"
     assert entry.state == "NY"
     assert entry.country == "USA"
     assert entry.zipcode == "11370"
-    assert entry.latitude == "1.1"
-    assert entry.longitude == "4.2"
+    assert entry.latitude == 1.1
+    assert entry.longitude == 4.2
 
 
 @pytest.mark.parametrize(

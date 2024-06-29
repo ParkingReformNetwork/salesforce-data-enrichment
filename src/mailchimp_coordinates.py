@@ -8,14 +8,14 @@ logging.getLogger("mailchimp3.client").setLevel(logging.CRITICAL)
 
 
 class Coordinates(NamedTuple):
-    latitude: str
-    longitude: str
+    latitude: float
+    longitude: float
 
     @classmethod
     def from_mailchimp(cls, entry: dict[str, Any]) -> "Coordinates | None":
         lat: float = entry["location"]["latitude"]
         long: float = entry["location"]["longitude"]
-        return cls(str(lat), str(long)) if lat and long else None
+        return cls(lat, long) if lat and long else None
 
 
 def get_coordinates_by_email() -> dict[str, Coordinates | None]:

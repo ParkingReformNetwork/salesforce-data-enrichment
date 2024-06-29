@@ -12,8 +12,8 @@ class SalesforceEntry(BaseModel):
     email: str | None = Field(..., alias="Email", frozen=True)
     city: str | None = Field(..., alias="MailingCity")
     country: str | None = Field(..., alias="MailingCountry")
-    latitude: str | None = Field(..., alias="MailingLatitude")
-    longitude: str | None = Field(..., alias="MailingLongitude")
+    latitude: float | None = Field(..., alias="MailingLatitude")
+    longitude: float | None = Field(..., alias="MailingLongitude")
     zipcode: str | None = Field(..., alias="MailingPostalCode")
     state: str | None = Field(..., alias="MailingState")
     street: str | None = Field(..., alias="MailingStreet")
@@ -25,8 +25,8 @@ class SalesforceEntry(BaseModel):
         *,
         city: str | None = None,
         country: str | None = None,
-        latitude: str | None = None,
-        longitude: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
         zipcode: str | None = None,
         state: str | None = None,
         street: str | None = None,
