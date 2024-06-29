@@ -1,7 +1,8 @@
 cryptography
 geopy
-uszipcode
+mailchimp3
 python-Levenshtein
 pydantic
 pytest
 simple-salesforce
+uszipcode

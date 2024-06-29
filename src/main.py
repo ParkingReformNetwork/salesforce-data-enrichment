@@ -6,7 +6,7 @@ from uszipcode import SearchEngine
 
 import metro_csvs
 import salesforce_api
-from mailchimp_entry import MailchimpEntry
+from mailchimp_coordinates import get_coordinates_by_email
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
@@ -25,9 +25,10 @@ def main() -> None:
 
     salesforce_client = salesforce_api.init_client()
     entries = salesforce_api.load_data(salesforce_client)
+    logger.info(f"Loaded {len(entries)} Salesforce records")
 
-    # TODO: read in Mailchimp data
-    mailchimp_by_email: dict[str, MailchimpEntry] = {}
+    coordinates_by_email = get_coordinates_by_email()
+    logger.info(f"Loaded {len(coordinates_by_email)} coordinates from Mailchimp")
 
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
@@ -40,8 +41,8 @@ def main() -> None:
 
         # The order of operations matters.
         if entry.email:
-            entry.populate_via_latitude_longitude(
-                mailchimp_by_email.get(entry.email), geocoder
+            entry.populate_via_coordinates(
+                coordinates_by_email.get(entry.email), geocoder
             )
         entry.normalize()
         entry.populate_via_zipcode(zipcode_search_engine)

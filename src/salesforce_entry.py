@@ -2,7 +2,7 @@ from geopy import Nominatim
 from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
 
-from mailchimp_entry import MailchimpEntry
+from mailchimp_coordinates import Coordinates
 from country_codes import COUNTRY_CODES_TWO_LETTER_TO_THREE, COUNTRY_NAMES_TO_THREE
 from state_codes import US_STATES_TO_CODES
 
@@ -83,24 +83,24 @@ class SalesforceEntry(BaseModel):
                 raise AssertionError(f"Unexpected zipcode for {self}")
             self.zipcode = self.zipcode[:5]
 
-    def populate_via_latitude_longitude(
-        self, mailchimp: MailchimpEntry | None, geocoder: Nominatim
+    def populate_via_coordinates(
+        self, coordinates: Coordinates | None, geocoder: Nominatim
     ) -> None:
-        if mailchimp is None or not (mailchimp.latitude and mailchimp.longitude):
+        if coordinates is None:
             return
 
         metro_area_can_be_computed = self.zipcode or (self.city and self.country)
         if metro_area_can_be_computed:
             return
 
-        addr = geocoder.reverse(f"{mailchimp.latitude}, {mailchimp.longitude}").raw[
+        addr = geocoder.reverse(f"{coordinates.latitude}, {coordinates.longitude}").raw[
             "address"
         ]
         if "postcode" not in addr:
             return
 
-        self.latitude = mailchimp.latitude
-        self.longitude = mailchimp.longitude
+        self.latitude = coordinates.latitude
+        self.longitude = coordinates.longitude
         self.zipcode = addr["postcode"]
 
         # Also overwrite any existing values so that we don't mix the prior address
