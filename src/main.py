@@ -2,6 +2,7 @@ import logging
 from argparse import ArgumentParser
 
 from geopy import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 from uszipcode import SearchEngine
 
 import metro_csvs
@@ -33,7 +34,8 @@ def main() -> None:
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
     zipcode_search_engine = SearchEngine()
-    geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment")
+    geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment", timeout=10)
+    reverse_geocode = RateLimiter(geocoder.reverse, min_delay_seconds=1.1)
 
     changed_records = 0
     for entry in entries:
@@ -42,7 +44,7 @@ def main() -> None:
         # The order of operations matters.
         if entry.email:
             entry.populate_via_coordinates(
-                coordinates_by_email.get(entry.email), geocoder
+                coordinates_by_email.get(entry.email), reverse_geocode
             )
         entry.normalize()
         entry.populate_via_zipcode(zipcode_search_engine)
