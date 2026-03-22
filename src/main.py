@@ -34,7 +34,9 @@ def main() -> None:
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
     zipcode_search_engine = SearchEngine()
-    geocoder = Nominatim(user_agent="parking_reform_network_data_enrichment", timeout=10)
+    geocoder = Nominatim(
+        user_agent="parking_reform_network_data_enrichment", timeout=10
+    )
     reverse_geocode = RateLimiter(geocoder.reverse, min_delay_seconds=1.1)
 
     changed_records = 0
