@@ -8,8 +8,8 @@ from salesforce_entry import SalesforceEntry
 
 
 @pytest.fixture
-def geocoder_mock():
-    geocoder = Mock()
+def geocode_reverse_mock():
+    reverse_fn = Mock()
     reverse_method_mock = Mock()
     reverse_method_mock.raw = {
         "address": {
@@ -19,8 +19,8 @@ def geocoder_mock():
             "postcode": "11370",
         }
     }
-    geocoder.reverse.return_value = reverse_method_mock
-    return geocoder
+    reverse_fn.return_value = reverse_method_mock
+    return reverse_fn
 
 
 @pytest.mark.parametrize(
@@ -95,10 +95,10 @@ def test_populate_via_zipcode(
     assert entry.city == expected_city
 
 
-def test_populate_via_coordinates(geocoder_mock) -> None:
+def test_populate_via_coordinates(geocode_reverse_mock) -> None:
     coordinates = Coordinates(latitude=1.1, longitude=4.2)
     entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, geocoder_mock)
+    entry.populate_via_coordinates(coordinates, geocode_reverse_mock)
     assert entry.city == "New York"
     assert entry.state == "NY"
     assert entry.country == "USA"

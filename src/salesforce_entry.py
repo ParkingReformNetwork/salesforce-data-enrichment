@@ -1,4 +1,5 @@
-from geopy import Nominatim
+from typing import Callable
+
 from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
 
@@ -84,7 +85,7 @@ class SalesforceEntry(BaseModel):
             self.zipcode = self.zipcode[:5]
 
     def populate_via_coordinates(
-        self, coordinates: Coordinates | None, geocoder: Nominatim
+        self, coordinates: Coordinates | None, reverse_geocode: Callable
     ) -> None:
         if coordinates is None:
             return
@@ -93,7 +94,7 @@ class SalesforceEntry(BaseModel):
         if metro_area_can_be_computed:
             return
 
-        addr = geocoder.reverse(f"{coordinates.latitude}, {coordinates.longitude}").raw[
+        addr = reverse_geocode(f"{coordinates.latitude}, {coordinates.longitude}").raw[
             "address"
         ]
         if "postcode" not in addr:

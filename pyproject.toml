@@ -1,6 +1,7 @@
 [[tool.mypy.overrides]]
 module = [
     "geopy",
+    "geopy.extra.rate_limiter",
     "mailchimp3",
     "uszipcode"
 ]
