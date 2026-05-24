@@ -7,16 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: astral-sh/setup-uv@v3
         with:
+          enable-cache: true
           python-version: '3.13'
-      - uses: pantsbuild/actions/init-pants@main
-        with:
-          gha-cache-key: cache0-py${{ matrix.python_version }}
-          named-caches-hash: ${{ hashFiles('*.lock') }}
-      - name: Lint
-        run: pants lint '::'
-      - name: Typecheck
-        run: pants check '::'
-      - name: Run tests
-        run: pants test '::'
+      - uses: extractions/setup-just@v2
+      - run: just install
+      - run: just lint
+      - run: just check
+      - run: just test

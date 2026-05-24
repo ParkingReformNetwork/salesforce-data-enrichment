@@ -1,8 +1,0 @@
-cryptography
-geopy
-mailchimp3
-python-Levenshtein
-pydantic
-pytest
-simple-salesforce
-uszipcode
