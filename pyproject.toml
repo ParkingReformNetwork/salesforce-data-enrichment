@@ -1,8 +1,31 @@
-[[tool.mypy.overrides]]
-module = [
+[project]
+name = "salesforce-data-enrichment"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "cryptography",
     "geopy",
-    "geopy.extra.rate_limiter",
     "mailchimp3",
-    "uszipcode"
+    "python-Levenshtein",
+    "pydantic",
+    "simple-salesforce",
+    "uszipcode",
+    "sqlalchemy<2",
 ]
+
+[dependency-groups]
+dev = [
+    "mypy",
+    "pytest",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[[tool.mypy.overrides]]
+module = ["geopy", "geopy.extra.rate_limiter", "mailchimp3", "uszipcode"]
 ignore_missing_imports = true

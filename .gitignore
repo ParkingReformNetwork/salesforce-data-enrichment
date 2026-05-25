@@ -1,10 +1,10 @@
-.pants.d/
-.pids/
-dist/
-
 __pycache__
 .venv/
 .envrc
+.idea/
+.mypy_cache
+.pytest_cache
+.ruff_cache
 
 data/mailchimp.csv
 data/result*.csv
