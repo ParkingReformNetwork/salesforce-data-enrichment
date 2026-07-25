@@ -13,7 +13,7 @@ lint:
     uv run ty check
 
 test:
-    uv run pytest src
+    uv run pytest src scripts
 
 run *ARGS:
     uv run salesforce-data-enrichment {{ARGS}}

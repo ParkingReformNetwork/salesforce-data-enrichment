@@ -5,10 +5,10 @@ A simple Python project that runs in a cron job every day via GitHub Actions pip
 * Salesforce API: source of truth for contacts; reads and writes records.
 * Mailchimp API: source of lat/long coordinates per email.
 * OpenStreetMap's Nominatim API (via `geopy`): reverse-geocodes coordinates into addresses. Rate-limited per OSM's usage policy.
-* `uszipcode`: local SQLite dataset for zip code lookups (not a live API).
-* The https://ziptometro.com dataset: shipped as encrypted CSVs in `data/`, decrypted at runtime with `ENCRYPTION_KEY` in `src/metro_csvs.py`.
+* GeoNames' postal code dataset: local CSV at `data/us-zip-to-city-state.csv` for zip code lookups.
+* The https://ziptometro.com dataset: shipped as encrypted CSVs in `data/`, decrypted at runtime with `ENCRYPTION_KEY` in `src/salesforce_data_enrichment/metro_csvs.py`.
 
-The pipeline works best with U.S.-based addresses, but it still attempts to enrich non-U.S. adddresses.
+The pipeline works best with U.S.-based addresses, but it still attempts to enrich non-U.S. addresses.
 
 ## How to run commands
 

@@ -6,6 +6,7 @@ from geopy import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 
 from salesforce_data_enrichment import metro_csvs, salesforce_api, us_zip_lookup
+from salesforce_data_enrichment.enrich import enrich_entry
 from salesforce_data_enrichment.env import check_required_env_vars
 from salesforce_data_enrichment.mailchimp_coordinates import get_coordinates_by_email
 
@@ -48,21 +49,20 @@ def main() -> None:
         original_model_dump = entry.model_dump(by_alias=True)
 
         try:
-            # The order of operations matters.
-            if entry.email:
-                entry.populate_via_coordinates(
-                    coordinates_by_email.get(entry.email), reverse_geocode
-                )
-            entry.normalize()
-            entry.populate_via_us_zipcode(us_zip_to_city_state)
-            entry.populate_us_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
-
-            changes = entry.compute_changes(original_model_dump)
+            enrich_entry(
+                entry,
+                coordinates_by_email.get(entry.email) if entry.email else None,
+                reverse_geocode,
+                us_zip_to_city_state,
+                us_zip_to_metro,
+                us_city_and_state_to_metro,
+            )
         except Exception as e:
             failed_records += 1
             logger.warning(f"Failed to process {entry.uid}: {type(e).__name__}: {e}")
             continue
 
+        changes = entry.compute_changes(original_model_dump)
         if not changes:
             continue
 

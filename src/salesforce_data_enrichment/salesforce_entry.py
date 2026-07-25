@@ -1,13 +1,18 @@
-from typing import Callable
+from collections.abc import Callable
 
+from geopy.location import Location
 from pydantic import BaseModel, Field
 
+from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
 from salesforce_data_enrichment.reference_data.country_codes import (
     COUNTRY_CODES_TWO_LETTER_TO_THREE,
     COUNTRY_NAMES_TO_THREE,
 )
 from salesforce_data_enrichment.reference_data.state_codes import US_STATES_TO_CODES
-from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
+
+FieldValue = str | float | None
+
+ReverseGeocode = Callable[[str], Location | None]
 
 
 class SalesforceEntry(BaseModel):
@@ -22,33 +27,9 @@ class SalesforceEntry(BaseModel):
     street: str | None = Field(..., alias="MailingStreet")
     metro: str | None = Field(..., alias="Metro_Area__c")
 
-    @classmethod
-    def mock(
-        cls,
-        *,
-        city: str | None = None,
-        country: str | None = None,
-        latitude: float | None = None,
-        longitude: float | None = None,
-        zipcode: str | None = None,
-        state: str | None = None,
-        street: str | None = None,
-        metro: str | None = None,
-    ) -> "SalesforceEntry":
-        return cls(
-            Email="tech@parkingreform.org",
-            Id="12345",
-            MailingCity=city,
-            MailingCountry=country,
-            MailingLatitude=latitude,
-            MailingLongitude=longitude,
-            MailingPostalCode=zipcode,
-            MailingState=state,
-            MailingStreet=street,
-            Metro_Area__c=metro,
-        )
-
-    def compute_changes(self, original_model_dump: dict[str, str]) -> dict[str, str]:
+    def compute_changes(
+        self, original_model_dump: dict[str, FieldValue]
+    ) -> dict[str, FieldValue]:
         new_model_dump = self.model_dump(by_alias=True)
         return {k: v for k, v in new_model_dump.items() if v != original_model_dump[k]}
 
@@ -96,7 +77,7 @@ class SalesforceEntry(BaseModel):
             self.zipcode = digits[:5]
 
     def populate_via_coordinates(
-        self, coordinates: Coordinates | None, reverse_geocode: Callable
+        self, coordinates: Coordinates | None, reverse_geocode: ReverseGeocode
     ) -> None:
         if coordinates is None:
             return
@@ -129,12 +110,13 @@ class SalesforceEntry(BaseModel):
         # with the new one.
         self.street = None
         self.country = addr.get("country_code", "").upper() or None
-        self.state = (
-            addr.get("state")
-            or addr.get("region")
-            or addr.get("state_district")
-            or addr.get("county")
-        )
+
+        self.state = addr.get("state")
+        if not self.state and self.country != "US":
+            self.state = (
+                addr.get("region") or addr.get("state_district") or addr.get("county")
+            )
+
         self.city = (
             addr.get("city")
             or addr.get("town")
