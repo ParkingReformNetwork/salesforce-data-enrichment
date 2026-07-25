@@ -1,4 +1,5 @@
 import logging
+import sys
 from argparse import ArgumentParser
 
 from geopy import Nominatim
@@ -43,19 +44,26 @@ def main() -> None:
     )
 
     changed_records = 0
+    failed_records = 0
     for entry in entries:
         original_model_dump = entry.model_dump(by_alias=True)
 
-        # The order of operations matters.
-        if entry.email:
-            entry.populate_via_coordinates(
-                coordinates_by_email.get(entry.email), reverse_geocode
-            )
-        entry.normalize()
-        entry.populate_via_us_zipcode(zipcode_search_engine)
-        entry.populate_us_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
+        try:
+            # The order of operations matters.
+            if entry.email:
+                entry.populate_via_coordinates(
+                    coordinates_by_email.get(entry.email), reverse_geocode
+                )
+            entry.normalize()
+            entry.populate_via_us_zipcode(zipcode_search_engine)
+            entry.populate_us_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
 
-        changes = entry.compute_changes(original_model_dump)
+            changes = entry.compute_changes(original_model_dump)
+        except Exception as e:
+            failed_records += 1
+            logger.warning(f"Failed to process {entry.uid}: {type(e).__name__}: {e}")
+            continue
+
         if not changes:
             continue
 
@@ -69,7 +77,9 @@ def main() -> None:
                 f"Changes computed (but not written) for {entry.uid}: {changed_keys}"
             )
 
-    logger.info(f"Total records changed: {changed_records}")
+    logger.info(f"Total records changed: {changed_records}, failed: {failed_records}")
+    if failed_records > 0:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
