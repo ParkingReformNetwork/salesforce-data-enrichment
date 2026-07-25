@@ -1,10 +1,11 @@
 import csv
-import os
 from functools import cache
 from io import StringIO
 from pathlib import Path
 
 from cryptography.fernet import Fernet
+
+from salesforce_data_enrichment.env import pop_env
 
 """We encrypt the CSVs from https://ziptometro.com with a symmetric key to
 avoid violating their terms of service."""
@@ -12,7 +13,8 @@ avoid violating their terms of service."""
 
 @cache
 def _cipher() -> Fernet:
-    return Fernet(os.environ.pop("ENCRYPTION_KEY"))
+    (key,) = pop_env("ENCRYPTION_KEY")
+    return Fernet(key)
 
 
 def parse_us_zip_to_metro(csv_text: str) -> dict[str, str]:

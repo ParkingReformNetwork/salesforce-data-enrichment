@@ -1,8 +1,9 @@
 import logging
-import os
 from typing import Any, NamedTuple
 
 from mailchimp3 import MailChimp
+
+from salesforce_data_enrichment.env import pop_env
 
 logging.getLogger("mailchimp3.client").setLevel(logging.CRITICAL)
 
@@ -19,8 +20,7 @@ class Coordinates(NamedTuple):
 
 
 def get_coordinates_by_email() -> dict[str, Coordinates]:
-    key = os.environ.pop("MAILCHIMP_KEY")
-    list_id = os.environ.pop("MAILCHIMP_LIST_ID")
+    key, list_id = pop_env("MAILCHIMP_KEY", "MAILCHIMP_LIST_ID")
     client = MailChimp(mc_api=key)
     result = client.lists.members.all(
         list_id=list_id,

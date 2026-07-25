@@ -1,14 +1,13 @@
-import os
-
 from simple_salesforce import Salesforce
 
+from salesforce_data_enrichment.env import pop_env
 from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
 
 
 def init_client() -> Salesforce:
-    username = os.environ.pop("SALESFORCE_USERNAME")
-    password = os.environ.pop("SALESFORCE_PASSWORD")
-    token = os.environ.pop("SALESFORCE_TOKEN")
+    username, password, token = pop_env(
+        "SALESFORCE_USERNAME", "SALESFORCE_PASSWORD", "SALESFORCE_TOKEN"
+    )
     return Salesforce(
         username=username,
         password=password,
