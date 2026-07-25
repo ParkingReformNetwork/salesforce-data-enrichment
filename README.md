@@ -40,9 +40,3 @@ just check
 ```bash
 just run
 ```
-
-### Update lockfile
-
-```bash
-just lock
-```
