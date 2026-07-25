@@ -23,6 +23,11 @@ def geocode_reverse_mock():
     return reverse_fn
 
 
+# -------------------------------------------------------
+# normalize
+# -------------------------------------------------------
+
+
 @pytest.mark.parametrize(
     "arg,expected",
     [
@@ -102,6 +107,11 @@ def test_normalize_zip_code_invalid_raises(zip: str) -> None:
         entry.normalize()
 
 
+# -------------------------------------------------------
+# populate_via_us_zipcode
+# -------------------------------------------------------
+
+
 @pytest.mark.parametrize(
     "country,zip,expected_state,expected_city",
     [
@@ -118,6 +128,11 @@ def test_populate_via_zipcode(
     assert entry.city == expected_city
 
 
+# -------------------------------------------------------
+# populate_via_coordinates
+# -------------------------------------------------------
+
+
 def test_populate_via_coordinates(geocode_reverse_mock) -> None:
     coordinates = Coordinates(latitude=1.1, longitude=4.2)
     entry = SalesforceEntry.mock()
@@ -130,15 +145,37 @@ def test_populate_via_coordinates(geocode_reverse_mock) -> None:
     assert entry.longitude == 4.2
 
 
-def test_populate_via_coordinates_skips_when_metro_already_computable(
+@pytest.mark.parametrize(
+    "country,zip,city,state,should_geocode",
+    [
+        # USA: a zip alone is enough (metro CSV / local DB cover the rest).
+        ("USA", "11370", None, None, False),
+        # USA: city + state is enough for the metro lookup.
+        ("USA", None, "Flushing", "NY", False),
+        # USA: city alone can't find a metro without state or zip.
+        ("USA", None, "Flushing", None, True),
+        # USA: state alone can't find a metro without city or zip.
+        ("USA", None, None, "NY", True),
+        # Non-USA: city + country is enough; metro never applies there.
+        ("GB", None, "London", None, False),
+        # Non-USA: a zip alone can't fill in city without geocoding (no local DB).
+        ("GB", "SW1A 1AA", None, None, True),
+        # Non-USA: country alone can't fill in city without geocoding.
+        ("GB", None, None, None, True),
+    ],
+)
+def test_populate_via_coordinates_geocode_guard(
     geocode_reverse_mock,
+    country: str,
+    zip: str | None,
+    city: str | None,
+    state: str | None,
+    should_geocode: bool,
 ) -> None:
     coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock(zipcode="11370")
+    entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
     entry.populate_via_coordinates(coordinates, geocode_reverse_mock)
-    assert entry.latitude is None
-    assert entry.longitude is None
-    geocode_reverse_mock.assert_not_called()
+    assert geocode_reverse_mock.called == should_geocode
 
 
 @pytest.mark.parametrize(
@@ -192,6 +229,11 @@ def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
     assert entry.longitude is None
 
 
+# -------------------------------------------------------
+# populate_us_metro_area
+# -------------------------------------------------------
+
+
 @pytest.mark.parametrize(
     "country,zip,city,state,expected",
     [
@@ -208,6 +250,11 @@ def test_populate_metro_area(
     entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
     entry.populate_us_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
     assert entry.metro == expected
+
+
+# -------------------------------------------------------
+# compute_changes
+# -------------------------------------------------------
 
 
 def test_compute_changes() -> None:

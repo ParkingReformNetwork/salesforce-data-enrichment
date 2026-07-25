@@ -53,23 +53,29 @@ class SalesforceEntry(BaseModel):
         new_model_dump = self.model_dump(by_alias=True)
         return {k: v for k, v in new_model_dump.items() if v != original_model_dump[k]}
 
+    def _normalized_country(self) -> str | None:
+        if not self.country:
+            return None
+        if len(self.country) == 2:
+            country = self.country.upper()
+            if country not in COUNTRY_CODES_TWO_LETTER_TO_THREE:
+                raise ValueError(f"Unrecognized country '{country}' for {self.uid}")
+            return COUNTRY_CODES_TWO_LETTER_TO_THREE[country]
+        if len(self.country) > 3:
+            if self.country not in COUNTRY_NAMES_TO_THREE:
+                raise ValueError(
+                    f"Unrecognized country '{self.country}' for {self.uid}"
+                )
+            return COUNTRY_NAMES_TO_THREE[self.country]
+        return self.country
+
     def normalize(self) -> None:
         """Normalize the country code, state, city, and zip.
 
         This does not add any new data, only normalizes existing data.
         """
         if self.country:
-            if len(self.country) == 2:
-                country = self.country.upper()
-                if country not in COUNTRY_CODES_TWO_LETTER_TO_THREE:
-                    raise ValueError(f"Unrecognized country '{country}' for {self.uid}")
-                self.country = COUNTRY_CODES_TWO_LETTER_TO_THREE[country]
-            elif len(self.country) > 3:
-                if self.country not in COUNTRY_NAMES_TO_THREE:
-                    raise ValueError(
-                        f"Unrecognized country '{self.country}' for {self.uid}"
-                    )
-                self.country = COUNTRY_NAMES_TO_THREE[self.country]
+            self.country = self._normalized_country()
 
         # Convert US state names to two-digit codes.
         if self.country == "USA" and self.state and len(self.state) > 2:
@@ -96,8 +102,17 @@ class SalesforceEntry(BaseModel):
         if coordinates is None:
             return
 
-        metro_area_can_be_computed = self.zipcode or (self.city and self.country)
-        if metro_area_can_be_computed:
+        is_usa = self._normalized_country() == "USA"
+        # A US zip is enough on its own: populate_us_metro_area looks up the metro
+        # directly from it, and populate_via_us_zipcode backfills city/state from a
+        # local database. Neither needs a reverse geocode lookup.
+        if is_usa and self.zipcode:
+            return
+        if is_usa and self.city and self.state:
+            return
+
+        # For non-US, it's enough for us to know their city + country; no need to geocode.
+        if not is_usa and self.city and self.country:
             return
 
         addr = reverse_geocode(f"{coordinates.latitude}, {coordinates.longitude}").raw[

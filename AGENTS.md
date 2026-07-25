@@ -8,6 +8,8 @@ A simple Python project that runs in a cron job every day via GitHub Actions pip
 * `uszipcode`: local SQLite dataset for zip code lookups (not a live API).
 * The https://ziptometro.com dataset: shipped as encrypted CSVs in `data/`, decrypted at runtime with `ENCRYPTION_KEY` in `src/metro_csvs.py`.
 
+The pipeline works best with U.S.-based addresses, but it still attempts to enrich non-U.S. adddresses.
+
 ## How to run commands
 
 * `just fmt`: autoformat
