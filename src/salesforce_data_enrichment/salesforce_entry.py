@@ -115,10 +115,11 @@ class SalesforceEntry(BaseModel):
         if not is_usa and self.city and self.country:
             return
 
-        addr = reverse_geocode(f"{coordinates.latitude}, {coordinates.longitude}").raw[
-            "address"
-        ]
-        if "postcode" not in addr:
+        location = reverse_geocode(f"{coordinates.latitude}, {coordinates.longitude}")
+        if location is None:
+            return
+        addr = location.raw.get("address")
+        if not addr or "postcode" not in addr:
             return
 
         self.latitude = coordinates.latitude

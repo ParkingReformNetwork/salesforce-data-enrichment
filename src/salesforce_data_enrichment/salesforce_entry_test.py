@@ -218,6 +218,16 @@ def test_populate_via_coordinates_state_fallback(addr_key: str) -> None:
     assert entry.state == "Some Region"
 
 
+def test_populate_via_coordinates_skips_when_geocode_returns_none() -> None:
+    reverse_fn = Mock(return_value=None)
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
+    entry = SalesforceEntry.mock()
+    entry.populate_via_coordinates(coordinates, reverse_fn)
+    assert entry.zipcode is None
+    assert entry.latitude is None
+    assert entry.longitude is None
+
+
 def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
     reverse_fn = Mock()
     reverse_fn.return_value.raw = {"address": {"city": "New York"}}
