@@ -86,9 +86,8 @@ class SalesforceEntry(BaseModel):
         if self.country == "USA" and self.zipcode:
             digits = self.zipcode.replace("-", "")
             if len(digits) not in (5, 9) or not digits.isdigit():
-                raise AssertionError(
-                    f"Unexpected zipcode '{self.zipcode}' for uid {self.uid}"
-                )
+                # We don't log the actual zip code because it's personal information.
+                raise ValueError(f"Malformed MailingPostalCode for uid {self.uid}")
             self.zipcode = digits[:5]
 
     def populate_via_coordinates(

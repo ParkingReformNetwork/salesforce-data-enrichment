@@ -98,7 +98,7 @@ def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> Non
 @pytest.mark.parametrize("zip", ["1137", "1137023", "abcde", "113a2"])
 def test_normalize_zip_code_invalid_raises(zip: str) -> None:
     entry = SalesforceEntry.mock(country="USA", zipcode=zip)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         entry.normalize()
 
 
