@@ -50,8 +50,8 @@ def main() -> None:
                 coordinates_by_email.get(entry.email), reverse_geocode
             )
         entry.normalize()
-        entry.populate_via_zipcode(zipcode_search_engine)
-        entry.populate_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
+        entry.populate_via_us_zipcode(zipcode_search_engine)
+        entry.populate_us_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
 
         changes = entry.compute_changes(original_model_dump)
         if not changes:

@@ -114,10 +114,21 @@ class SalesforceEntry(BaseModel):
         # with the new one.
         self.street = None
         self.country = addr.get("country_code", "").upper() or None
-        self.state = addr.get("state")
-        self.city = addr.get("city")
+        self.state = (
+            addr.get("state")
+            or addr.get("region")
+            or addr.get("state_district")
+            or addr.get("county")
+        )
+        self.city = (
+            addr.get("city")
+            or addr.get("town")
+            or addr.get("municipality")
+            or addr.get("village")
+            or addr.get("hamlet")
+        )
 
-    def populate_via_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
+    def populate_via_us_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
         """Look up city and state for US zip codes."""
         if self.country != "USA" or not self.zipcode or (self.state and self.city):
             return
@@ -126,7 +137,7 @@ class SalesforceEntry(BaseModel):
             self.state = zipcode_info.state
             self.city = zipcode_info.major_city
 
-    def populate_metro_area(
+    def populate_us_metro_area(
         self,
         us_zip_to_metro: dict[str, str],
         us_city_and_state_to_metro: dict[tuple[str, str], str],
