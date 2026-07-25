@@ -3,9 +3,12 @@ from typing import Callable
 from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
 
-from mailchimp_coordinates import Coordinates
-from data.country_codes import COUNTRY_CODES_TWO_LETTER_TO_THREE, COUNTRY_NAMES_TO_THREE
-from data.state_codes import US_STATES_TO_CODES
+from salesforce_data_enrichment.reference_data.country_codes import (
+    COUNTRY_CODES_TWO_LETTER_TO_THREE,
+    COUNTRY_NAMES_TO_THREE,
+)
+from salesforce_data_enrichment.reference_data.state_codes import US_STATES_TO_CODES
+from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
 
 
 class SalesforceEntry(BaseModel):

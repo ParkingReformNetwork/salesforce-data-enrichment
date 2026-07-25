@@ -16,4 +16,4 @@ test:
     uv run pytest src
 
 run *ARGS:
-    PYTHONPATH=src uv run python src/main.py {{ARGS}}
+    uv run salesforce-data-enrichment {{ARGS}}

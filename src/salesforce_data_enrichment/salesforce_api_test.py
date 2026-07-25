@@ -1,4 +1,4 @@
-from salesforce_api import query_fields
+from salesforce_data_enrichment.salesforce_api import query_fields
 
 
 def test_query_fields_uses_salesforce_aliases() -> None:

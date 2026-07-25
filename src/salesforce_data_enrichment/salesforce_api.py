@@ -2,7 +2,7 @@ import os
 
 from simple_salesforce import Salesforce
 
-from salesforce_entry import SalesforceEntry
+from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
 
 
 def init_client() -> Salesforce:

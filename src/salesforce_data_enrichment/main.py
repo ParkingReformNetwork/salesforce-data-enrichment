@@ -5,9 +5,8 @@ from geopy import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 from uszipcode import SearchEngine
 
-import metro_csvs
-import salesforce_api
-from mailchimp_coordinates import get_coordinates_by_email
+from salesforce_data_enrichment import metro_csvs, salesforce_api
+from salesforce_data_enrichment.mailchimp_coordinates import get_coordinates_by_email
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
