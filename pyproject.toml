@@ -6,11 +6,8 @@ dependencies = [
     "cryptography",
     "geopy",
     "mailchimp3",
-    "python-Levenshtein",
     "pydantic",
     "simple-salesforce",
-    "uszipcode",
-    "sqlalchemy<2",
 ]
 
 [project.scripts]

@@ -39,3 +39,14 @@ just lint
 ```bash
 just run
 ```
+
+### Refresh the US zip code dataset
+
+`data/us-zip-to-city-state.csv` stores zip → city/state and is used to fill in missing city and
+state for US addresses. It is generated from [GeoNames' public postal code
+dataset](https://download.geonames.org/export/zip/US.zip) (CC BY 4.0). The file is checked
+into the repo rather than fetched at runtime. To pull a fresh copy:
+
+```bash
+uv run python scripts/refresh_us_zip_data.py
+```
