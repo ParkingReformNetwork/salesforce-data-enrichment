@@ -6,6 +6,7 @@ from geopy.extra.rate_limiter import RateLimiter
 from uszipcode import SearchEngine
 
 from salesforce_data_enrichment import metro_csvs, salesforce_api
+from salesforce_data_enrichment.env import check_required_env_vars
 from salesforce_data_enrichment.mailchimp_coordinates import get_coordinates_by_email
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ def create_parser() -> ArgumentParser:
 
 def main() -> None:
     args = create_parser().parse_args()
+    check_required_env_vars()
 
     salesforce_client = salesforce_api.init_client()
     entries = salesforce_api.load_data(salesforce_client)
