@@ -40,6 +40,13 @@ def test_normalize_country(arg: str, expected: str) -> None:
     assert entry.country == expected
 
 
+@pytest.mark.parametrize("arg", ["ZZ", "Fake Country"])
+def test_normalize_country_unrecognized_raises(arg: str) -> None:
+    entry = SalesforceEntry.mock(country=arg)
+    with pytest.raises(ValueError):
+        entry.normalize()
+
+
 @pytest.mark.parametrize(
     "country,state,expected",
     [
@@ -52,6 +59,12 @@ def test_normalize_state(country: str, state: str, expected: str) -> None:
     entry = SalesforceEntry.mock(country=country, state=state)
     entry.normalize()
     assert entry.state == expected
+
+
+def test_normalize_state_unrecognized_raises() -> None:
+    entry = SalesforceEntry.mock(country="USA", state="Fake State")
+    with pytest.raises(ValueError):
+        entry.normalize()
 
 
 @pytest.mark.parametrize(
@@ -115,6 +128,28 @@ def test_populate_via_coordinates(geocode_reverse_mock) -> None:
     assert entry.zipcode == "11370"
     assert entry.latitude == 1.1
     assert entry.longitude == 4.2
+
+
+def test_populate_via_coordinates_skips_when_metro_already_computable(
+    geocode_reverse_mock,
+) -> None:
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
+    entry = SalesforceEntry.mock(zipcode="11370")
+    entry.populate_via_coordinates(coordinates, geocode_reverse_mock)
+    assert entry.latitude is None
+    assert entry.longitude is None
+    geocode_reverse_mock.assert_not_called()
+
+
+def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
+    reverse_fn = Mock()
+    reverse_fn.return_value.raw = {"address": {"city": "New York"}}
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
+    entry = SalesforceEntry.mock()
+    entry.populate_via_coordinates(coordinates, reverse_fn)
+    assert entry.zipcode is None
+    assert entry.latitude is None
+    assert entry.longitude is None
 
 
 @pytest.mark.parametrize(

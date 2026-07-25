@@ -17,13 +17,16 @@ def init_client() -> Salesforce:
     )
 
 
-def load_data(client: Salesforce) -> list[SalesforceEntry]:
-    fields = ", ".join(
+def query_fields() -> str:
+    return ", ".join(
         info.alias or name for name, info in SalesforceEntry.model_fields.items()
     )
+
+
+def load_data(client: Salesforce) -> list[SalesforceEntry]:
     return [
         SalesforceEntry(**raw)
-        for raw in client.query_all_iter(f"SELECT {fields} FROM Contact")
+        for raw in client.query_all_iter(f"SELECT {query_fields()} FROM Contact")
     ]
 
 
