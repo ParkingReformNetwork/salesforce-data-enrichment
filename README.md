@@ -32,7 +32,6 @@ just fmt
 
 ```bash
 just lint
-just check
 ```
 
 ### Run script

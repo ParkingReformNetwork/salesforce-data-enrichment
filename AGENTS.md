@@ -11,8 +11,7 @@ A simple Python project that runs in a cron job every day via GitHub Actions pip
 ## How to run commands
 
 * `just fmt`: autoformat
-* `just lint`: run Ruff
-* `just check`: run MyPy
+* `just lint`: run Ruff and ty (type checker)
 * `just test`: run Pytest
 
 ## Coding style
