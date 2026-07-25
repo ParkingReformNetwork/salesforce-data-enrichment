@@ -1,6 +1,5 @@
 from typing import Callable
 
-from uszipcode import SearchEngine
 from pydantic import BaseModel, Field
 
 from salesforce_data_enrichment.reference_data.country_codes import (
@@ -144,14 +143,15 @@ class SalesforceEntry(BaseModel):
             or addr.get("hamlet")
         )
 
-    def populate_via_us_zipcode(self, zipcode_search_engine: SearchEngine) -> None:
+    def populate_via_us_zipcode(
+        self, us_zip_to_city_state: dict[str, tuple[str, str]]
+    ) -> None:
         """Look up city and state for US zip codes."""
         if self.country != "USA" or not self.zipcode or (self.state and self.city):
             return
-        zipcode_info = zipcode_search_engine.by_zipcode(self.zipcode)
-        if zipcode_info:
-            self.state = zipcode_info.state
-            self.city = zipcode_info.major_city
+        city_state = us_zip_to_city_state.get(self.zipcode)
+        if city_state:
+            self.city, self.state = city_state
 
     def populate_us_metro_area(
         self,

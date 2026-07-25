@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-from uszipcode import SearchEngine
 
 from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
 from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
@@ -111,21 +110,33 @@ def test_normalize_zip_code_invalid_raises(zip: str) -> None:
 # populate_via_us_zipcode
 # -------------------------------------------------------
 
+_US_ZIP_TO_CITY_STATE = {"11370": ("East Elmhurst", "NY")}
+
 
 @pytest.mark.parametrize(
     "country,zip,expected_state,expected_city",
     [
         ("USA", "11370", "NY", "East Elmhurst"),
         ("MEX", "11370", None, None),
+        ("USA", "00000", None, None),  # zip not in the lookup table
     ],
 )
 def test_populate_via_zipcode(
     country: str, zip: str, expected_state: str, expected_city: str
 ) -> None:
     entry = SalesforceEntry.mock(country=country, zipcode=zip)
-    entry.populate_via_us_zipcode(SearchEngine())
+    entry.populate_via_us_zipcode(_US_ZIP_TO_CITY_STATE)
     assert entry.state == expected_state
     assert entry.city == expected_city
+
+
+def test_populate_via_zipcode_does_not_overwrite_existing_city_and_state() -> None:
+    entry = SalesforceEntry.mock(
+        country="USA", zipcode="11370", city="Flushing", state="NY"
+    )
+    entry.populate_via_us_zipcode(_US_ZIP_TO_CITY_STATE)
+    assert entry.city == "Flushing"
+    assert entry.state == "NY"
 
 
 # -------------------------------------------------------

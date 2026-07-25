@@ -4,9 +4,8 @@ from argparse import ArgumentParser
 
 from geopy import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
-from uszipcode import SearchEngine
 
-from salesforce_data_enrichment import metro_csvs, salesforce_api
+from salesforce_data_enrichment import metro_csvs, salesforce_api, us_zip_lookup
 from salesforce_data_enrichment.env import check_required_env_vars
 from salesforce_data_enrichment.mailchimp_coordinates import get_coordinates_by_email
 
@@ -35,7 +34,7 @@ def main() -> None:
 
     us_zip_to_metro = metro_csvs.read_us_zip_to_metro()
     us_city_and_state_to_metro = metro_csvs.read_us_city_and_state_to_metro()
-    zipcode_search_engine = SearchEngine()
+    us_zip_to_city_state = us_zip_lookup.read_us_zip_to_city_state()
     geocoder = Nominatim(
         user_agent="parking_reform_network_data_enrichment", timeout=10
     )
@@ -55,7 +54,7 @@ def main() -> None:
                     coordinates_by_email.get(entry.email), reverse_geocode
                 )
             entry.normalize()
-            entry.populate_via_us_zipcode(zipcode_search_engine)
+            entry.populate_via_us_zipcode(us_zip_to_city_state)
             entry.populate_us_metro_area(us_zip_to_metro, us_city_and_state_to_metro)
 
             changes = entry.compute_changes(original_model_dump)
