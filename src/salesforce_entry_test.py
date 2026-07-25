@@ -88,6 +88,7 @@ def test_normalize_zip_code_invalid_raises(zip: str) -> None:
     with pytest.raises(AssertionError):
         entry.normalize()
 
+
 @pytest.mark.parametrize(
     "country,zip,expected_state,expected_city",
     [

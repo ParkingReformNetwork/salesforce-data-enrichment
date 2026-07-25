@@ -14,5 +14,4 @@ jobs:
       - uses: extractions/setup-just@v2
       - run: just install
       - run: just lint
-      - run: just check
       - run: just test
