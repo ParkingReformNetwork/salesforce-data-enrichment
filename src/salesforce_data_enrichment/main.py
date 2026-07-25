@@ -38,7 +38,9 @@ def main() -> None:
     geocoder = Nominatim(
         user_agent="parking_reform_network_data_enrichment", timeout=10
     )
-    reverse_geocode = RateLimiter(geocoder.reverse, min_delay_seconds=1.1)
+    reverse_geocode = RateLimiter(
+        geocoder.reverse, min_delay_seconds=1.1, swallow_exceptions=False
+    )
 
     changed_records = 0
     for entry in entries:
