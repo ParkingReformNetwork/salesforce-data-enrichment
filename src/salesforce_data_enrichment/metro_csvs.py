@@ -1,3 +1,6 @@
+"""We encrypt the CSVs from https://ziptometro.com with a symmetric key to
+avoid violating their terms of service."""
+
 import csv
 from functools import cache
 from io import StringIO
@@ -6,9 +9,6 @@ from pathlib import Path
 from cryptography.fernet import Fernet
 
 from salesforce_data_enrichment.env import pop_env
-
-"""We encrypt the CSVs from https://ziptometro.com with a symmetric key to
-avoid violating their terms of service."""
 
 
 @cache
@@ -29,6 +29,7 @@ def parse_us_city_and_state_to_metro(csv_text: str) -> dict[tuple[str, str], str
     return {
         (row["city"], row["state"]): row["metro"]
         for row in csv.DictReader(StringIO(csv_text))
+        if row["metro"]
     }
 
 

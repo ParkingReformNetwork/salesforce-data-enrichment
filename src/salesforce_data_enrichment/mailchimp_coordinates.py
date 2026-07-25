@@ -5,6 +5,7 @@ from mailchimp3 import MailChimp
 
 from salesforce_data_enrichment.env import pop_env
 
+# Quiet the logs for less noise and to reduce the risk of leaking PI.
 logging.getLogger("mailchimp3.client").setLevel(logging.CRITICAL)
 
 

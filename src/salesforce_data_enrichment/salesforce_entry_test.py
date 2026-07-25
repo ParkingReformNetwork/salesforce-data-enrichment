@@ -1,25 +1,9 @@
-from unittest.mock import Mock
-
 import pytest
+from testing_helpers import build_entry, build_geocode
 
 from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
-from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
 
-
-@pytest.fixture
-def geocode_reverse_mock():
-    reverse_fn = Mock()
-    reverse_method_mock = Mock()
-    reverse_method_mock.raw = {
-        "address": {
-            "country_code": "USA",
-            "state": "NY",
-            "city": "New York",
-            "postcode": "11370",
-        }
-    }
-    reverse_fn.return_value = reverse_method_mock
-    return reverse_fn
+COORDINATES = Coordinates(latitude=1.1, longitude=4.2)
 
 
 # -------------------------------------------------------
@@ -39,14 +23,14 @@ def geocode_reverse_mock():
     ],
 )
 def test_normalize_country(arg: str, expected: str) -> None:
-    entry = SalesforceEntry.mock(country=arg)
+    entry = build_entry(country=arg)
     entry.normalize()
     assert entry.country == expected
 
 
 @pytest.mark.parametrize("arg", ["ZZ", "Fake Country"])
 def test_normalize_country_unrecognized_raises(arg: str) -> None:
-    entry = SalesforceEntry.mock(country=arg)
+    entry = build_entry(country=arg)
     with pytest.raises(ValueError):
         entry.normalize()
 
@@ -60,13 +44,13 @@ def test_normalize_country_unrecognized_raises(arg: str) -> None:
     ],
 )
 def test_normalize_state(country: str, state: str, expected: str) -> None:
-    entry = SalesforceEntry.mock(country=country, state=state)
+    entry = build_entry(country=country, state=state)
     entry.normalize()
     assert entry.state == expected
 
 
 def test_normalize_state_unrecognized_raises() -> None:
-    entry = SalesforceEntry.mock(country="USA", state="Fake State")
+    entry = build_entry(country="USA", state="Fake State")
     with pytest.raises(ValueError):
         entry.normalize()
 
@@ -76,7 +60,7 @@ def test_normalize_state_unrecognized_raises() -> None:
     [("ST. PAUL", "St. Paul"), ("St. Paul", "St. Paul")],
 )
 def test_normalize_city_capitalization(arg: str, expected: str) -> None:
-    entry = SalesforceEntry.mock(city=arg)
+    entry = build_entry(city=arg)
     entry.normalize()
     assert entry.city == expected
 
@@ -93,17 +77,20 @@ def test_normalize_city_capitalization(arg: str, expected: str) -> None:
         ("MEX", "11370-54", "11370-54"),
     ],
 )
-def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> None:
-    entry = SalesforceEntry.mock(country=country, zipcode=zip)
+def test_normalize_zip_code_length(
+    country: str, zip: str | None, expected: str | None
+) -> None:
+    entry = build_entry(country=country, zipcode=zip)
     entry.normalize()
     assert entry.zipcode == expected
 
 
 @pytest.mark.parametrize("zip", ["1137", "1137023", "abcde", "113a2"])
 def test_normalize_zip_code_invalid_raises(zip: str) -> None:
-    entry = SalesforceEntry.mock(country="USA", zipcode=zip)
-    with pytest.raises(ValueError):
+    entry = build_entry(country="USA", zipcode=zip)
+    with pytest.raises(ValueError) as exc_info:
         entry.normalize()
+    assert zip not in str(exc_info.value)
 
 
 # -------------------------------------------------------
@@ -122,18 +109,16 @@ _US_ZIP_TO_CITY_STATE = {"11370": ("East Elmhurst", "NY")}
     ],
 )
 def test_populate_via_zipcode(
-    country: str, zip: str, expected_state: str, expected_city: str
+    country: str, zip: str, expected_state: str | None, expected_city: str | None
 ) -> None:
-    entry = SalesforceEntry.mock(country=country, zipcode=zip)
+    entry = build_entry(country=country, zipcode=zip)
     entry.populate_via_us_zipcode(_US_ZIP_TO_CITY_STATE)
     assert entry.state == expected_state
     assert entry.city == expected_city
 
 
 def test_populate_via_zipcode_does_not_overwrite_existing_city_and_state() -> None:
-    entry = SalesforceEntry.mock(
-        country="USA", zipcode="11370", city="Flushing", state="NY"
-    )
+    entry = build_entry(country="USA", zipcode="11370", city="Flushing", state="NY")
     entry.populate_via_us_zipcode(_US_ZIP_TO_CITY_STATE)
     assert entry.city == "Flushing"
     assert entry.state == "NY"
@@ -144,16 +129,23 @@ def test_populate_via_zipcode_does_not_overwrite_existing_city_and_state() -> No
 # -------------------------------------------------------
 
 
-def test_populate_via_coordinates(geocode_reverse_mock) -> None:
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, geocode_reverse_mock)
+def test_populate_via_coordinates() -> None:
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, build_geocode())
     assert entry.city == "New York"
-    assert entry.state == "NY"
-    assert entry.country == "USA"
     assert entry.zipcode == "11370"
     assert entry.latitude == 1.1
     assert entry.longitude == 4.2
+    # Raw Nominatim values; normalize() converts these to "USA" and "NY" afterwards.
+    assert entry.country == "US"
+    assert entry.state == "New York"
+
+
+def test_populate_via_coordinates_clears_street() -> None:
+    """The old street belongs to the old address, so it must not survive."""
+    entry = build_entry(street="123 Fake St")
+    entry.populate_via_coordinates(COORDINATES, build_geocode())
+    assert entry.street is None
 
 
 @pytest.mark.parametrize(
@@ -176,17 +168,36 @@ def test_populate_via_coordinates(geocode_reverse_mock) -> None:
     ],
 )
 def test_populate_via_coordinates_geocode_guard(
-    geocode_reverse_mock,
     country: str,
     zip: str | None,
     city: str | None,
     state: str | None,
     should_geocode: bool,
 ) -> None:
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
-    entry.populate_via_coordinates(coordinates, geocode_reverse_mock)
-    assert geocode_reverse_mock.called == should_geocode
+    reverse_fn = build_geocode()
+    entry = build_entry(country=country, zipcode=zip, city=city, state=state)
+    entry.populate_via_coordinates(COORDINATES, reverse_fn)
+
+    assert reverse_fn.called == should_geocode
+    if not should_geocode:
+        # Skipping the lookup must also leave the existing data untouched.
+        assert (entry.country, entry.zipcode, entry.city, entry.state) == (
+            country,
+            zip,
+            city,
+            state,
+        )
+        assert entry.latitude is None
+        assert entry.longitude is None
+
+
+def test_populate_via_coordinates_skips_when_no_coordinates() -> None:
+    """Most contacts have no Mailchimp coordinates; they must not cost a lookup."""
+    reverse_fn = build_geocode()
+    entry = build_entry()
+    entry.populate_via_coordinates(None, reverse_fn)
+    assert not reverse_fn.called
+    assert entry.zipcode is None
 
 
 @pytest.mark.parametrize(
@@ -194,18 +205,16 @@ def test_populate_via_coordinates_geocode_guard(
     ["city", "town", "municipality", "village", "hamlet"],
 )
 def test_populate_via_coordinates_city_fallback(addr_key: str) -> None:
-    reverse_fn = Mock()
-    reverse_fn.return_value.raw = {
-        "address": {
-            "country_code": "USA",
-            "state": "NY",
+    reverse_fn = build_geocode(
+        {
+            "country_code": "us",
+            "state": "New York",
             addr_key: "Small Place",
             "postcode": "11370",
         }
-    }
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, reverse_fn)
+    )
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, reverse_fn)
     assert entry.city == "Small Place"
 
 
@@ -214,37 +223,41 @@ def test_populate_via_coordinates_city_fallback(addr_key: str) -> None:
     ["state", "region", "state_district", "county"],
 )
 def test_populate_via_coordinates_state_fallback(addr_key: str) -> None:
-    reverse_fn = Mock()
-    reverse_fn.return_value.raw = {
-        "address": {
-            "country_code": "GB",
+    reverse_fn = build_geocode(
+        {
+            "country_code": "gb",
             addr_key: "Some Region",
             "city": "London",
             "postcode": "SW1A 1AA",
         }
-    }
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, reverse_fn)
+    )
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, reverse_fn)
     assert entry.state == "Some Region"
 
 
+@pytest.mark.parametrize("addr_key", ["region", "state_district", "county"])
+def test_populate_via_coordinates_ignores_us_state_fallbacks(addr_key: str) -> None:
+    """A US county or district is not a valid MailingState, so it must be dropped."""
+    reverse_fn = build_geocode(
+        {"country_code": "us", addr_key: "Queens County", "postcode": "11370"}
+    )
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, reverse_fn)
+    assert entry.state is None
+
+
 def test_populate_via_coordinates_skips_when_geocode_returns_none() -> None:
-    reverse_fn = Mock(return_value=None)
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, reverse_fn)
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, build_geocode(address=None))
     assert entry.zipcode is None
     assert entry.latitude is None
     assert entry.longitude is None
 
 
 def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
-    reverse_fn = Mock()
-    reverse_fn.return_value.raw = {"address": {"city": "New York"}}
-    coordinates = Coordinates(latitude=1.1, longitude=4.2)
-    entry = SalesforceEntry.mock()
-    entry.populate_via_coordinates(coordinates, reverse_fn)
+    entry = build_entry()
+    entry.populate_via_coordinates(COORDINATES, build_geocode({"city": "New York"}))
     assert entry.zipcode is None
     assert entry.latitude is None
     assert entry.longitude is None
@@ -266,11 +279,21 @@ def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
     ],
 )
 def test_populate_metro_area(
-    country: str, zip: str, city: str, state: str, expected: str
+    country: str,
+    zip: str | None,
+    city: str | None,
+    state: str | None,
+    expected: str | None,
 ) -> None:
-    entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
+    entry = build_entry(country=country, zipcode=zip, city=city, state=state)
     entry.populate_us_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
     assert entry.metro == expected
+
+
+def test_populate_metro_area_keeps_existing_metro_when_lookup_misses() -> None:
+    entry = build_entry(country="USA", zipcode="99999", metro="Old Metro")
+    entry.populate_us_metro_area({"11370": "My Metro"}, {})
+    assert entry.metro == "Old Metro"
 
 
 # -------------------------------------------------------
@@ -278,19 +301,53 @@ def test_populate_metro_area(
 # -------------------------------------------------------
 
 
-def test_compute_changes() -> None:
-    entry = SalesforceEntry.mock()
-    original_model_dump = entry.model_dump(by_alias=True)
+def test_compute_changes_empty_when_unmodified() -> None:
+    entry = build_entry()
+    assert not entry.compute_changes(entry.model_dump(by_alias=True))
 
-    assert not entry.compute_changes(original_model_dump)
+
+def test_compute_changes_reports_modified_fields() -> None:
+    entry = build_entry()
+    original = entry.model_dump(by_alias=True)
 
     entry.city = "My City"
     entry.zipcode = "11370"
-    updates = {"MailingCity": "My City", "MailingPostalCode": "11370"}
-    assert entry.compute_changes(original_model_dump) == updates
-    updated_model_dump = entry.model_dump(by_alias=True)
+
+    assert entry.compute_changes(original) == {
+        "MailingCity": "My City",
+        "MailingPostalCode": "11370",
+    }
+
+
+def test_compute_changes_is_relative_to_the_given_dump() -> None:
+    entry = build_entry()
+    original = entry.model_dump(by_alias=True)
+    entry.city = "My City"
+    intermediate = entry.model_dump(by_alias=True)
 
     entry.country = "USA"
-    country_update = {"MailingCountry": "USA"}
-    assert entry.compute_changes(original_model_dump) == {**updates, **country_update}
-    assert entry.compute_changes(updated_model_dump) == country_update
+
+    assert entry.compute_changes(original) == {
+        "MailingCity": "My City",
+        "MailingCountry": "USA",
+    }
+    assert entry.compute_changes(intermediate) == {"MailingCountry": "USA"}
+
+
+def test_compute_changes_includes_cleared_fields() -> None:
+    """Nulling a field is a real change that must be written back."""
+    entry = build_entry(street="123 Fake St")
+    original = entry.model_dump(by_alias=True)
+
+    entry.street = None
+
+    assert entry.compute_changes(original) == {"MailingStreet": None}
+
+
+def test_compute_changes_includes_float_coordinates() -> None:
+    entry = build_entry()
+    original = entry.model_dump(by_alias=True)
+
+    entry.latitude = 1.1
+
+    assert entry.compute_changes(original) == {"MailingLatitude": 1.1}

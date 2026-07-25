@@ -1,7 +1,7 @@
 from simple_salesforce import Salesforce
 
 from salesforce_data_enrichment.env import pop_env
-from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
+from salesforce_data_enrichment.salesforce_entry import FieldValue, SalesforceEntry
 
 
 def init_client() -> Salesforce:
@@ -29,7 +29,7 @@ def load_data(client: Salesforce) -> list[SalesforceEntry]:
     ]
 
 
-def write_change(client: Salesforce, uid: str, changes: dict[str, str]) -> None:
+def write_change(client: Salesforce, uid: str, changes: dict[str, FieldValue]) -> None:
     # We don't use the bulk API because error messages are bad and we only write a
     # handful of records per run.
     client.Contact.update(uid, changes)  # ty: ignore[call-non-callable]
