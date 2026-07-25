@@ -78,11 +78,15 @@ class SalesforceEntry(BaseModel):
         if self.city and self.city.isupper():
             self.city = self.city.title()
 
-        # Normalize US zip codes to be 5 digits.
-        if self.country == "USA" and self.zipcode and len(self.zipcode) > 5:
-            if self.zipcode[5] != "-":
-                raise AssertionError(f"Unexpected zipcode for {self}")
-            self.zipcode = self.zipcode[:5]
+        # Normalize US zip codes (5 digits) and zip+4 codes (e.g. "11370-2314" or
+        # "070876603") down to 5 digits. Reject anything else.
+        if self.country == "USA" and self.zipcode:
+            digits = self.zipcode.replace("-", "")
+            if len(digits) not in (5, 9) or not digits.isdigit():
+                raise AssertionError(
+                    f"Unexpected zipcode '{self.zipcode}' for uid {self.uid}"
+                )
+            self.zipcode = digits[:5]
 
     def populate_via_coordinates(
         self, coordinates: Coordinates | None, reverse_geocode: Callable

@@ -68,6 +68,9 @@ def test_normalize_city_capitalization(arg: str, expected: str) -> None:
     "country,zip,expected",
     [
         ("USA", "11370-2314", "11370"),
+        ("USA", "113702314", "11370"),
+        ("USA", "07087-6603", "07087"),
+        ("USA", "070876603", "07087"),
         ("USA", "11370", "11370"),
         ("USA", None, None),
         ("MEX", "11370-54", "11370-54"),
@@ -78,6 +81,12 @@ def test_normalize_zip_code_length(country: str, zip: str, expected: str) -> Non
     entry.normalize()
     assert entry.zipcode == expected
 
+
+@pytest.mark.parametrize("zip", ["1137", "1137023", "abcde", "113a2"])
+def test_normalize_zip_code_invalid_raises(zip: str) -> None:
+    entry = SalesforceEntry.mock(country="USA", zipcode=zip)
+    with pytest.raises(AssertionError):
+        entry.normalize()
 
 @pytest.mark.parametrize(
     "country,zip,expected_state,expected_city",
