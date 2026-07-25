@@ -18,7 +18,7 @@ class Coordinates(NamedTuple):
         return cls(lat, long) if lat and long else None
 
 
-def get_coordinates_by_email() -> dict[str, Coordinates | None]:
+def get_coordinates_by_email() -> dict[str, Coordinates]:
     key = os.environ.pop("MAILCHIMP_KEY")
     list_id = os.environ.pop("MAILCHIMP_LIST_ID")
     client = MailChimp(mc_api=key)

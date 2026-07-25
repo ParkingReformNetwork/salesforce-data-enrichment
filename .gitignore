@@ -5,6 +5,9 @@ __pycache__
 .mypy_cache
 .pytest_cache
 .ruff_cache
+*.egg-info/
+.claude/
+dist/
 
 data/mailchimp.csv
 data/result*.csv

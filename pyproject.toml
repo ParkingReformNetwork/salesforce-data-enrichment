@@ -13,16 +13,15 @@ dependencies = [
     "sqlalchemy<2",
 ]
 
+[project.scripts]
+salesforce-data-enrichment = "salesforce_data_enrichment.main:main"
+
+[tool.uv]
+package = true
+
 [dependency-groups]
 dev = [
     "pytest",
     "ruff",
     "ty",
 ]
-
-[tool.uv]
-package = false
-
-[tool.pytest.ini_options]
-pythonpath = ["src"]
-

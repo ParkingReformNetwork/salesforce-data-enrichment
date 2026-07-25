@@ -3,8 +3,8 @@ from unittest.mock import Mock
 import pytest
 from uszipcode import SearchEngine
 
-from mailchimp_coordinates import Coordinates
-from salesforce_entry import SalesforceEntry
+from salesforce_data_enrichment.mailchimp_coordinates import Coordinates
+from salesforce_data_enrichment.salesforce_entry import SalesforceEntry
 
 
 @pytest.fixture

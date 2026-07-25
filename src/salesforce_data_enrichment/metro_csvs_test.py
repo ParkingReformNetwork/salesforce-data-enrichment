@@ -1,4 +1,7 @@
-from metro_csvs import parse_us_city_and_state_to_metro, parse_us_zip_to_metro
+from salesforce_data_enrichment.metro_csvs import (
+    parse_us_city_and_state_to_metro,
+    parse_us_zip_to_metro,
+)
 
 
 def test_parse_us_zip_to_metro_skips_empty_metro() -> None:
