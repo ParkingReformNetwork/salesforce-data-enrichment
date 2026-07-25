@@ -113,7 +113,7 @@ def test_populate_via_zipcode(
     country: str, zip: str, expected_state: str, expected_city: str
 ) -> None:
     entry = SalesforceEntry.mock(country=country, zipcode=zip)
-    entry.populate_via_zipcode(SearchEngine())
+    entry.populate_via_us_zipcode(SearchEngine())
     assert entry.state == expected_state
     assert entry.city == expected_city
 
@@ -141,6 +141,46 @@ def test_populate_via_coordinates_skips_when_metro_already_computable(
     geocode_reverse_mock.assert_not_called()
 
 
+@pytest.mark.parametrize(
+    "addr_key",
+    ["city", "town", "municipality", "village", "hamlet"],
+)
+def test_populate_via_coordinates_city_fallback(addr_key: str) -> None:
+    reverse_fn = Mock()
+    reverse_fn.return_value.raw = {
+        "address": {
+            "country_code": "USA",
+            "state": "NY",
+            addr_key: "Small Place",
+            "postcode": "11370",
+        }
+    }
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
+    entry = SalesforceEntry.mock()
+    entry.populate_via_coordinates(coordinates, reverse_fn)
+    assert entry.city == "Small Place"
+
+
+@pytest.mark.parametrize(
+    "addr_key",
+    ["state", "region", "state_district", "county"],
+)
+def test_populate_via_coordinates_state_fallback(addr_key: str) -> None:
+    reverse_fn = Mock()
+    reverse_fn.return_value.raw = {
+        "address": {
+            "country_code": "GB",
+            addr_key: "Some Region",
+            "city": "London",
+            "postcode": "SW1A 1AA",
+        }
+    }
+    coordinates = Coordinates(latitude=1.1, longitude=4.2)
+    entry = SalesforceEntry.mock()
+    entry.populate_via_coordinates(coordinates, reverse_fn)
+    assert entry.state == "Some Region"
+
+
 def test_populate_via_coordinates_skips_when_no_postcode_found() -> None:
     reverse_fn = Mock()
     reverse_fn.return_value.raw = {"address": {"city": "New York"}}
@@ -166,7 +206,7 @@ def test_populate_metro_area(
     country: str, zip: str, city: str, state: str, expected: str
 ) -> None:
     entry = SalesforceEntry.mock(country=country, zipcode=zip, city=city, state=state)
-    entry.populate_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
+    entry.populate_us_metro_area({"11370": "My Metro"}, {("Tempe", "AZ"): "My Metro"})
     assert entry.metro == expected
 
 
