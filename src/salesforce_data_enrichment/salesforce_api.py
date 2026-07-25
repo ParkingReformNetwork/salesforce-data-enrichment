@@ -30,4 +30,6 @@ def load_data(client: Salesforce) -> list[SalesforceEntry]:
 
 
 def write_change(client: Salesforce, uid: str, changes: dict[str, str]) -> None:
+    # We don't use the bulk API because error messages are bad and we only write a
+    # handful of records per run.
     client.Contact.update(uid, changes)  # ty: ignore[call-non-callable]
