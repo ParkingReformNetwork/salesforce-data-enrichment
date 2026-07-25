@@ -18,6 +18,3 @@ test:
 
 run *ARGS:
     PYTHONPATH=src uv run python src/main.py {{ARGS}}
-
-lock:
-    uv lock
