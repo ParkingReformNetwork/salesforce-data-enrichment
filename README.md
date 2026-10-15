@@ -8,7 +8,9 @@ A pipeline to improve the location information of contacts, such as adding a met
 
 Install [uv](https://docs.astral.sh/uv/) and [just](https://github.com/casey/just).
 
-You also must set the environment variables `SALESFORCE_USERNAME`, `SALESFORCE_PASSWORD`, `SALESFORCE_TOKEN`, `ENCRYPTION_KEY`, `MAILCHIMP_KEY`, and `MAILCHIMP_LIST_ID`. Consider using `direnv` and an `.envrc` file. Get `ENCRYPTION_KEY` and the Mailchimp variables from other project maintainers. The Salesforce variables require having a Salesforce account with access. You can get the Salesforce security token by going to Settings -> Personal Information -> Reset My Security Token.
+You also must set the environment variables `SALESFORCE_CONSUMER_KEY`, `SALESFORCE_CONSUMER_SECRET`, `SALESFORCE_DOMAIN`, `ENCRYPTION_KEY`, `MAILCHIMP_KEY`, and `MAILCHIMP_LIST_ID`. Consider using `direnv` and an `.envrc` file. Get `ENCRYPTION_KEY` and the Mailchimp variables from other project maintainers.
+
+The Salesforce variables come from an External Client App configured for the OAuth 2.0 client credentials flow (username/password login uses the SOAP `login()` call, which Salesforce is retiring). A Salesforce admin creates the app in Setup -> External Client Apps Manager, enables OAuth with the `api` scope and the client credentials flow, sets a dedicated integration user as the run-as user under Edit Policies, and shares the Consumer Key and Secret. `SALESFORCE_DOMAIN` is the org's My Domain (Setup -> My Domain), e.g. `example.my.salesforce.com`. The run-as user needs read on `Contact.Email` and read/edit on `MailingStreet`, `MailingCity`, `MailingState`, `MailingPostalCode`, `MailingCountry`, `MailingLatitude`, `MailingLongitude`, and `Metro_Area__c`.
 
 ### Install
 
