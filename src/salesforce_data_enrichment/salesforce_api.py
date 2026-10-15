@@ -5,15 +5,33 @@ from salesforce_data_enrichment.salesforce_entry import FieldValue, SalesforceEn
 
 
 def init_client() -> Salesforce:
-    username, password, token = pop_env(
-        "SALESFORCE_USERNAME", "SALESFORCE_PASSWORD", "SALESFORCE_TOKEN"
+    # OAuth 2.0 client credentials flow via an External Client App. The SOAP
+    # login() call that username + password + security token used is being
+    # retired by Salesforce (Summer '27).
+    consumer_key, consumer_secret, domain = pop_env(
+        "SALESFORCE_CONSUMER_KEY", "SALESFORCE_CONSUMER_SECRET", "SALESFORCE_DOMAIN"
     )
     return Salesforce(
-        username=username,
-        password=password,
-        security_token=token,
-        client_id="salesforce-data-enrichment",
+        consumer_key=consumer_key,
+        consumer_secret=consumer_secret,
+        domain=normalize_domain(domain),
     )
+
+
+def normalize_domain(domain: str) -> str:
+    """Accept the My Domain as shown in Setup and return the form simple-salesforce
+    expects: `https://example.my.salesforce.com/` -> `example.my`.
+
+    The client credentials flow only works against the org's My Domain, never
+    the generic `login`/`test` hosts.
+    """
+    result = domain.strip().removeprefix("https://").rstrip("/")
+    result = result.removesuffix(".salesforce.com")
+    if result in ("login", "test", "") or "." not in result:
+        raise ValueError(
+            "SALESFORCE_DOMAIN must be the org's My Domain, e.g. example.my.salesforce.com"
+        )
+    return result
 
 
 def query_fields() -> str:
